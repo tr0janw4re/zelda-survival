@@ -61,12 +61,13 @@ let tilesetImgW = (tileset["dungeons"].naturalWidth/16);
 let tilesetImgH = (tileset["dungeons"].naturalHeight/16); //for future calculations
 
 let playerProp = {
-    x : 0,
-    y : 0,
-    direction: 0,
-    frame: 0,
-    fTimer: 0,
-    fDelay: 8,
+    x : 0, //player X
+    y : 0, //player Y
+    direction: 0, //player direction
+    frame: 0, //player animation actual frame
+    fTimer: 0, //player frame timer
+    fDelay: 8, //time during a frame and another
+	totalF: 2 //frames for animation
 }
 
 let moveX = 0;
@@ -134,7 +135,7 @@ function _update(deltaTime) {
     if (moveX!==0 || moveY!==0) {
         playerProp.fTimer++;
         if (playerProp.fTimer >= playerProp.fDelay) {
-            playerProp.frame = (playerProp.frame + 1) % 2; // assume 2 frames de animação por direção
+            playerProp.frame = (playerProp.frame + 1) % playerProp.totalF;
             playerProp.fTimer = 0;
         }
     } else {
