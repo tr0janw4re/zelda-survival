@@ -2,21 +2,21 @@
 
 ## 05/12/2025:
 - Fixed a bug where the structure wasn't being drawed outside the VSCode Live Server
-- How many frames link can have is customizable instead only 2 frames
+- How many frames link can have is customizable instead only 2 frames per animation
 
 ### TO DO:
 - Implement a collision system
 
 ## 05/13/2025:
-- You can now switch to between the map (alpha and buggy)
+- You can now switch between the map parts (alpha and buggy)
 - Link's hitbox was created
 
 ### TO DO:
 - Make it works better
 
 ## 05/14/2025:
-- The map switch has been improved, and now you change by X or Y
+- The map switch has been improved, and now you change any side of the map instead only in Y coordinate
 - Bug fixes
 
 ### TO DO:
-- Implement a transition between the maps
+- Implement a transition between the map parts
