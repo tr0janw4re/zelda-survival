@@ -32,7 +32,7 @@ console.log("Version "+projectProp.verMajor+"."+projectProp.verMinor+"."+project
 let basesprSize = 16;
 let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
-let tileset2use = "dungeons";
+let tileset2use = "overworld";
 
 let transiting = false;
 
@@ -51,23 +51,29 @@ let transiting = false;
 //8 tiles of up to down (not 9, the last is used for hud, which for some reason is also part of the map)
 
 let mapList = [
-    [0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 ],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18],
-    [32, 33, 33, 33, 33, 33, 33, 33, 33, 34],
-	[3 , 4 , 4 , 4 , 4 , 4 , 4 , 4 , 4 , 5 ],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21],
-    [35, 36, 36, 36, 36, 36, 36, 36, 36, 37]
+    [0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 ,6 , 7, 7, 7, 7, 7, 7, 7, 7, 8],
+    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
+    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
+    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
+    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
+    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
+    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
+    [32, 33, 33, 33, 33, 33, 33, 33, 33, 34,38,39,39,39,39,39,39,39,39,40],
+	[3 , 4 , 4 , 4 , 4 , 4 , 4 , 4 , 4 , 5 , 9,10,10,10,10,10,10,10,10,11],
+    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
+    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
+    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
+    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
+    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
+    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
+    [35, 36, 36, 36, 36, 36, 36, 36, 36, 37,41,42,42,42,42,42,42,42,42,43]
 ]; //a pretty basic map to test tiles position
+
+/* for (let y=0; y<16; y++) {
+	for (let x=0; x<20; x++) {
+		mapList[y][x] = Math.round(Math.random()*37);
+	}
+} */
 
 
 let tileset = {
@@ -197,19 +203,44 @@ function _update(deltaTime) {
 			console.log("Invalid Y position: "+playerProp.y);
 		} */	
 	}
-	if (playerProp.y+playerHitbox.scly+((sprSize/basesprSize)*4)>=512) {
-		transiting = true;
-		let lazy = 1/((sprSize/basesprSize)*(sprSize/basesprSize));
+	//Player map change
+	if (playerProp.y+playerHitbox.scly+((sprSize/basesprSize)*4)>=512 && transiting==false) {
+		if (((camera.offsetY+1)*8)*2<=mapList.length) {
+			transiting = true;
+			let lazy = 1/((sprSize/basesprSize)*(sprSize/basesprSize));
+			
+			camera.offsetY+=1;
+			//camera.y+=1;
+			playerProp.y = 0;
+			transiting = false;
+		}
+	}if (playerProp.y+((sprSize/basesprSize)*4)<=0 && transiting==false) {
+		if (camera.offsetY>0) {
+			transiting = true;
+			camera.offsetY-=1;
+			playerProp.y = 448;
+			transiting = false;
+		}
+	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerHitbox.sclx>=640 && transiting==false) {
+		if (((camera.offsetX+1)*8)*2<=mapList[0].length) {
+			transiting = true;
+			//let lazy = 1/((sprSize/basesprSize)*(sprSize/basesprSize));
 		
-		camera.offsetY+=1;
-		//camera.y+=1;
-		playerProp.y = 0;
-		transiting = false;
-	}if (playerProp.y+((sprSize/basesprSize)*4)<=0) {
-		transiting = true;
-		camera.offsetY-=1;
-		playerProp.y = 448;
-		transiting = false;
+			camera.offsetX+=1;
+			//camera.y+=1;
+			playerProp.x = 16;
+			transiting = false;
+		}
+	}if (playerProp.x+((sprSize/basesprSize)*4)<=0 && transiting==false) {
+		if (camera.offsetX>0) {
+			transiting = true;
+			//let lazy = 1/((sprSize/basesprSize)*(sprSize/basesprSize));
+		
+			camera.offsetX-=1;
+			//camera.y+=1;
+			playerProp.x = 564;
+			transiting = false;
+		}
 	}
 }
 
@@ -220,15 +251,17 @@ function drawScene(){
 		//BUG FIX GUYS!!1!
 		let imgX = 0;
 		let imgY = 0;
-        for (let y = 0; y < 8; y++) { //optomize the map draw, his lenght is too big to be drawed entirelly
-			for (let x = 0; x < 10; x++) {
-                let tile = mapList[y+(camera.offsetY*8)][x+camera.offsetX];
-				tilesetImgW = (tileset[tileset2use].naturalWidth/16);
-				tilesetImgH = (tileset[tileset2use].naturalHeight/16);
-				imgX = tile % tilesetImgW; // Compute horizontal frame
-				imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
-				ctx.drawImage(tileset[tileset2use],imgX * basesprSize,imgY * basesprSize,basesprSize, basesprSize,(x * sprSize)+camera.x,(y * sprSize)+camera.y, sprSize, sprSize);
-				//ctx.fillRect(i*sprSize, y*sprSize, sprSize/2, sprSize/2);
+        for (let y = 0; y < mapList.length-(camera.offsetY*8); y++) { //optomize the map draw, his lenght is too big to be drawed entirelly
+			if((camera.offsetY*8)*2<=mapList.length) {
+				for (let x = 0; x < mapList[y].length; x++) {
+					let tile = mapList[y+(camera.offsetY*8)][x+(camera.offsetX*10)];
+					tilesetImgW = (tileset[tileset2use].naturalWidth/16);
+					tilesetImgH = (tileset[tileset2use].naturalHeight/16);
+					imgX = tile % tilesetImgW; // Compute horizontal frame
+					imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
+					ctx.drawImage(tileset[tileset2use],imgX * basesprSize,imgY * basesprSize,basesprSize, basesprSize,(x * sprSize)+camera.x,(y * sprSize)+camera.y, sprSize, sprSize);
+					//ctx.fillRect(i*sprSize, y*sprSize, sprSize/2, sprSize/2);
+				}
 			}
 		}
     }
@@ -241,7 +274,7 @@ function _draw() {
 	
 	if (linkSpr.complete) {
 		ctx.drawImage(linkSpr, playerProp.direction*basesprSize, playerProp.frame*basesprSize, basesprSize, basesprSize, playerProp.x, playerProp.y, sprSize, sprSize);
-		ctx.fillRect(playerProp.x+((sprSize/basesprSize)*4), playerProp.y+((sprSize/basesprSize)*4), playerHitbox.sclx, playerHitbox.scly);
+		//ctx.fillRect(playerProp.x+((sprSize/basesprSize)*4), playerProp.y+((sprSize/basesprSize)*4), playerHitbox.sclx, playerHitbox.scly);
 	}
 	//the hud is behind the player for some reason
 	//remember to move it back after the tests
