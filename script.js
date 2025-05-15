@@ -34,7 +34,7 @@ let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
-//window.history.pushState({}, '', '/new-url-text');
+window.history.pushState({}, '', '/new-url-text');
 
 let transiting = false;
 let transSide = {
