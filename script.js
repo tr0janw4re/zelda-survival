@@ -8,8 +8,8 @@ ctx.imageSmoothingEnabled = false;
 const projectProp = {
     verMajor : 0,
     verMinor : 0,
-    verPatch : 1,
-    verDescrp : "Endless Prototype"
+    verPatch : 2,
+    verDescrp : "More than Creator's Mind!"
 }
 
 //TODO: Add a Gameboy color on background behind the screen
@@ -33,6 +33,8 @@ let basesprSize = 16;
 let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
+
+//window.history.pushState({}, '', '/new-url-text');
 
 let transiting = false;
 let transSide = {
@@ -92,14 +94,6 @@ tileset["dungeons"].src = "assets/tileset/dungeons_t.png";
 tileset["overworld"].src = "assets/tileset/overworld_t.png";
 let linkSpr = new Image();
 linkSpr.src = "assets/linksprtest.png";
-let playerHitbox = {};
-
-linkSpr.onload = () => {
-	playerHitbox = {
-		sclx : sprSize-((sprSize/basesprSize)*8),
-		scly : sprSize-((sprSize/basesprSize)*8),
-	}
-};
 
 tileset[tileset2use].onload = () => {
     gameLoop(); //only starts the game when the image load
@@ -114,12 +108,17 @@ console.log(tilesetImgH);
 let playerProp = {
     x : 0, //player X
     y : 0, //player Y
+	sclx : sprSize-((sprSize/basesprSize)*8),
+	scly : sprSize-((sprSize/basesprSize)*8),
     direction: 0, //player direction
     frame: 0, //player animation actual frame
     fTimer: 0, //player frame timer
     fDelay: 8, //time during a frame and another
 	totalF: 2 //frames for animation
 }
+
+playerProp.sclxP = ((sprSize/basesprSize)*4);
+playerProp.sclyP = ((sprSize/basesprSize)*4);
 
 let camera = {
 	x : 0,
@@ -164,6 +163,22 @@ function gameLoop() {
 
 let lazy = (sprSize/basesprSize)*4;
 
+function checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY) {
+	let obj1prop = {
+		left : obj1.x+obj1.sclxP,
+		right : obj1.x+obj1.sclx,
+		up : obj1.y-obj1.sclyP,
+		down : obj1.y+obj1.scly
+	}
+	let obj2prop = {
+		left : tX-basesprSize,
+		right : tsclX+tX,
+		up : tY-basesprSize,
+		down : tY+(basesprSize*2),
+	}
+	return(obj1prop.right>obj2prop.left && obj1prop.left<obj2prop.right && obj1prop.down>obj2prop.up && obj1prop.up<obj2prop.down);
+}
+
 function _update(deltaTime) {
 	if (!transiting) {
 		if(keys["d"] || keys["a"]) {moveX=1} else {moveX=0};
@@ -202,14 +217,7 @@ function _update(deltaTime) {
 		} else {
 			playerProp.frame=0;
 			playerProp.fTimer=0;
-		}
-
-		/* if (playerProp.x%4!==0) {
-			console.log("Invalid X position: "+playerProp.x);
-		}
-		if (playerProp.y%4!==0) {
-			console.log("Invalid Y position: "+playerProp.y);
-		} */	
+		}	
 	} else if (transiting) {
 		if (transSide.down) {
 			if (camera.y>-512) {
@@ -261,7 +269,7 @@ function _update(deltaTime) {
 		}
 	}
 	//Player map change
-	if (playerProp.y+playerHitbox.scly+((sprSize/basesprSize)*4)>=512 && transiting==false) {
+	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>=512 && transiting==false) {
 		if (((camera.offsetY+1)*8)*2<=mapList.length) {
 			transiting = true;
 			transSide.down = true;
@@ -271,7 +279,7 @@ function _update(deltaTime) {
 			transiting = true;
 			transSide.up = true;
 		}
-	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerHitbox.sclx>=640 && transiting==false) {
+	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>=640 && transiting==false) {
 		if (((camera.offsetX+1)*8)*2<=mapList[0].length) {
 			transiting = true;
 			transSide.right = true;
@@ -300,9 +308,21 @@ function drawScene(){
 						imgX = tile % tilesetImgW; // Compute horizontal frame
 						imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
 						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
-							ctx.drawImage(tileset[tileset2use],imgX * basesprSize,imgY * basesprSize,basesprSize, basesprSize,(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
+							ctx.drawImage(
+								tileset[tileset2use],
+								imgX * basesprSize,
+								imgY * basesprSize,
+								basesprSize,
+								basesprSize,
+								(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
+								(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
+								sprSize, sprSize);
 						}
-						//ctx.fillRect(i*sprSize, y*sprSize, sprSize/2, sprSize/2);
+						if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+							ctx.globalAlpha = 0.5;
+							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
+							ctx.globalAlpha = 1;
+						}
 				}
 			//}
 		}
@@ -316,7 +336,7 @@ function _draw() {
 	
 	if (linkSpr.complete) {
 		ctx.drawImage(linkSpr, playerProp.direction*basesprSize, playerProp.frame*basesprSize, basesprSize, basesprSize, playerProp.x, playerProp.y, sprSize, sprSize);
-		//ctx.fillRect(playerProp.x+((sprSize/basesprSize)*4), playerProp.y+((sprSize/basesprSize)*4), playerHitbox.sclx, playerHitbox.scly);
+		ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly);
 	}
 	//the hud is behind the player for some reason
 	//remember to move it back after the tests
@@ -327,4 +347,5 @@ function _draw() {
     ctx.fillText(playerProp.y, 0, 530);
     ctx.fillText(playerProp.frame, 0, 540);
     ctx.fillText(playerProp.direction, 0, 550);
+	ctx.fillText(playerProp.sclx+playerProp.x, 0, 560);
 }
