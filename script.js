@@ -12,6 +12,8 @@ const projectProp = {
     verDescrp : "More than Creator's Mind!"
 }
 
+//a
+
 //TODO: Add a Gameboy color on background behind the screen
 //It makes the game looks more with the original Awakening
 
