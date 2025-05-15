@@ -3,8 +3,6 @@ canvas.width = 640;
 canvas.height = 576;
 const ctx = canvas.getContext("2d");
 
-//this is meant to work
-
 ctx.imageSmoothingEnabled = false;
 
 const projectProp = {
@@ -36,7 +34,12 @@ let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
-window.history.pushState({}, '', '/new-url-text');
+//Some things for object world generation:
+let objTax = {
+	tree : 2
+}
+
+//window.history.pushState({}, '', '/new-url-text');
 
 let transiting = false;
 let transSide = {
@@ -46,7 +49,7 @@ let transSide = {
 	down : false
 }
 
-/* let mapList = [
+/* let mapGroundList = [
     [0, 1, 1, 1, 1, 1, 1, 1, 1, 2],
     [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
     [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
@@ -60,7 +63,7 @@ let transSide = {
 //10 tiles of left to right
 //8 tiles of up to down (not 9, the last is used for hud, which for some reason is also part of the map)
 
-let mapList = [
+let mapGroundList = [
     [0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 ,6 , 7, 7, 7, 7, 7, 7, 7, 7, 8],
     [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
     [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
@@ -79,21 +82,60 @@ let mapList = [
     [35, 36, 36, 36, 36, 36, 36, 36, 36, 37,41,42,42,42,42,42,42,42,42,43]
 ]; //a pretty basic map to test tiles position
 
-/* for (let y=0; y<16; y++) {
-	for (let x=0; x<20; x++) {
-		mapList[y][x] = Math.round(Math.random()*37);
-	}
-} */
+console.log(`Map Y List ${mapGroundList.length} per block: 8`);
+console.log(`Map X List ${mapGroundList[0].length} per block: 10`)
 
+let mapObjList = []; //the most inneficient way to add objects to your world
 
 let tileset = {
     dungeons : new Image(),
-	overworld : new Image()
+	overworld : new Image(),
+	overworld_obj : new Image()
 };
 
+for (let y=0; y<mapGroundList[0].length; y++) {
+	mapObjList[y] = [];
+	for (let x=0; x<mapGroundList.length; x++) {
+		mapObjList[y][x] = 256;
+	}
+}
+
+for (let y=mapObjList[0].length-1; y>0; y--) {
+	for (let x=mapObjList.length-1; x>0; x--) {
+		let tree = Math.round(Math.random()*objTax.tree);
+		//console.log(tree);
+		if (tree==1) {
+			if (x>1 && y>1) {
+				//if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256)
+				if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
+					mapObjList[y][x]=3;
+				} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
+					mapObjList[y][x]=2;
+				} else {
+					mapObjList[y][x]=21;
+				}
+				if (mapObjList[y][x-1]==5) {
+					mapObjList[y][x-1]=3;
+				} else if (mapObjList[y][x-1]==4) {
+					mapObjList[y][x-1]=2;
+				} else {
+					mapObjList[y][x-1]=20;
+				}
+				mapObjList[y-1][x]=5;
+				mapObjList[y-1][x-1]=4;
+				console.log(x);
+				console.log(y);
+				//break;
+			}
+		}
+	}
+	//break;
+}
+
 //type of tileset
-tileset["dungeons"].src = "assets/tileset/dungeons_t.png";
-tileset["overworld"].src = "assets/tileset/overworld_t.png";
+tileset["dungeons"].src = "assets/tileset/dungeons/dungeons_t.png";
+tileset["overworld"].src = "assets/tileset/overworld/overworld_t_g.png";
+tileset["overworld_obj"].src = "assets/tileset/overworld/overworld_t_obj.png";
 let linkSpr = new Image();
 linkSpr.src = "assets/linksprtest.png";
 
@@ -103,9 +145,6 @@ tileset[tileset2use].onload = () => {
 
 let tilesetImgW = (tileset[tileset2use].naturalWidth/16);
 let tilesetImgH = (tileset[tileset2use].naturalHeight/16); //for future calculations
-
-console.log(tilesetImgW);
-console.log(tilesetImgH);
 
 let playerProp = {
     x : 0, //player X
@@ -272,7 +311,7 @@ function _update(deltaTime) {
 	}
 	//Player map change
 	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>=512 && transiting==false) {
-		if (((camera.offsetY+1)*8)*2<=mapList.length) {
+		if (((camera.offsetY+1)*8)*2<=mapGroundList.length) {
 			transiting = true;
 			transSide.down = true;
 		}
@@ -282,7 +321,7 @@ function _update(deltaTime) {
 			transSide.up = true;
 		}
 	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>=640 && transiting==false) {
-		if (((camera.offsetX+1)*8)*2<=mapList[0].length) {
+		if (((camera.offsetX+1)*8)*2<=mapGroundList[0].length) {
 			transiting = true;
 			transSide.right = true;
 		}
@@ -301,10 +340,10 @@ function drawScene(){
 		//BUG FIX GUYS!!1!
 		let imgX = 0;
 		let imgY = 0;
-        for (let y = 0; y < mapList.length; y++) { //optomize the map draw, his lenght is too big to be drawed entirelly
-			//if((camera.offsetY*8)*2<=mapList.length) {
-				for (let x = 0; x < mapList[y].length; x++) {
-						let tile = mapList[y][x];
+        for (let y = 0; y < mapGroundList.length; y++) { //optomize the map draw, his length is too big to be drawed entirelly
+			//if((camera.offsetY*8)*2<=mapGroundList.length) {
+				for (let x = 0; x < mapGroundList[y].length; x++) {
+						let tile = mapGroundList[y][x];
 						tilesetImgW = (tileset[tileset2use].naturalWidth/16);
 						tilesetImgH = (tileset[tileset2use].naturalHeight/16);
 						imgX = tile % tilesetImgW; // Compute horizontal frame
@@ -312,6 +351,29 @@ function drawScene(){
 						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
 							ctx.drawImage(
 								tileset[tileset2use],
+								imgX * basesprSize,
+								imgY * basesprSize,
+								basesprSize,
+								basesprSize,
+								(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
+								(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
+								sprSize, sprSize);
+						}
+						if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+							ctx.globalAlpha = 0.5;
+							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
+							ctx.globalAlpha = 1;
+						}
+				}
+				for (let x = 0; x < mapObjList[y].length; x++) {
+						let tile = mapObjList[y][x];
+						tilesetImgW = (tileset["overworld_obj"].naturalWidth/16);
+						tilesetImgH = (tileset["overworld_obj"].naturalHeight/16);
+						imgX = tile % 16; // Compute horizontal frame
+						imgY = Math.floor(tile / 16); // Compute vertical frame
+						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
+							ctx.drawImage(
+								tileset["overworld_obj"],
 								imgX * basesprSize,
 								imgY * basesprSize,
 								basesprSize,
