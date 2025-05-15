@@ -3,6 +3,8 @@ canvas.width = 640;
 canvas.height = 576;
 const ctx = canvas.getContext("2d");
 
+//this is meant to work
+
 ctx.imageSmoothingEnabled = false;
 
 const projectProp = {
