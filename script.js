@@ -35,6 +35,12 @@ let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
 let transiting = false;
+let transSide = {
+	right : false,
+	left : false,
+	up : false,
+	down : false
+}
 
 /* let mapList = [
     [0, 1, 1, 1, 1, 1, 1, 1, 1, 2],
@@ -156,6 +162,8 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+let lazy = (sprSize/basesprSize)*4;
+
 function _update(deltaTime) {
 	if (!transiting) {
 		if(keys["d"] || keys["a"]) {moveX=1} else {moveX=0};
@@ -202,44 +210,76 @@ function _update(deltaTime) {
 		if (playerProp.y%4!==0) {
 			console.log("Invalid Y position: "+playerProp.y);
 		} */	
+	} else if (transiting) {
+		if (transSide.down) {
+			if (camera.y>-512) {
+				camera.y-=lazy;
+				playerProp.y-=lazy;
+			} else {
+				camera.offsetY+=1;
+				camera.y=0;
+				playerProp.y=0;
+				transSide.down = false;
+				transiting = false;
+			}
+		}
+		if (transSide.up) {
+			if (camera.y<512) {
+				camera.y+=lazy;
+				playerProp.y+=lazy;
+			} else {
+				camera.offsetY-=1;
+				camera.y=0;
+				playerProp.y=448;
+				transSide.up = false;
+				transiting = false;
+			}
+		}
+		if (transSide.right) {
+			if (camera.x>-640) {
+				camera.x-=lazy;
+				playerProp.x-=lazy;
+			} else {
+				camera.offsetX+=1;
+				camera.x=0;
+				playerProp.x=16;
+				transSide.right = false;
+				transiting = false;
+			}
+		}
+		if (transSide.left) {
+			if (camera.x<640) {
+				camera.x+=lazy;
+				playerProp.x+=lazy;
+			} else {
+				camera.offsetX-=1;
+				camera.x=0;
+				playerProp.x=564;
+				transSide.left = false;
+				transiting=false
+			}
+		}
 	}
 	//Player map change
 	if (playerProp.y+playerHitbox.scly+((sprSize/basesprSize)*4)>=512 && transiting==false) {
 		if (((camera.offsetY+1)*8)*2<=mapList.length) {
 			transiting = true;
-			let lazy = 1/((sprSize/basesprSize)*(sprSize/basesprSize));
-			
-			camera.offsetY+=1;
-			//camera.y+=1;
-			playerProp.y = 0;
-			transiting = false;
+			transSide.down = true;
 		}
 	}if (playerProp.y+((sprSize/basesprSize)*4)<=0 && transiting==false) {
 		if (camera.offsetY>0) {
 			transiting = true;
-			camera.offsetY-=1;
-			playerProp.y = 448;
-			transiting = false;
+			transSide.up = true;
 		}
 	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerHitbox.sclx>=640 && transiting==false) {
 		if (((camera.offsetX+1)*8)*2<=mapList[0].length) {
 			transiting = true;
-			//let lazy = 1/((sprSize/basesprSize)*(sprSize/basesprSize));
-		
-			camera.offsetX+=1;
-			//camera.y+=1;
-			playerProp.x = 16;
-			transiting = false;
+			transSide.right = true;
 		}
 	}if (playerProp.x+((sprSize/basesprSize)*4)<=0 && transiting==false) {
 		if (camera.offsetX>0) {
 			transiting = true;
-			//let lazy = 1/((sprSize/basesprSize)*(sprSize/basesprSize));
-		
-			camera.offsetX-=1;
-			//camera.y+=1;
-			playerProp.x = 564;
-			transiting = false;
+			transSide.left = true;
 		}
 	}
 }
@@ -251,18 +291,20 @@ function drawScene(){
 		//BUG FIX GUYS!!1!
 		let imgX = 0;
 		let imgY = 0;
-        for (let y = 0; y < mapList.length-(camera.offsetY*8); y++) { //optomize the map draw, his lenght is too big to be drawed entirelly
-			if((camera.offsetY*8)*2<=mapList.length) {
+        for (let y = 0; y < mapList.length; y++) { //optomize the map draw, his lenght is too big to be drawed entirelly
+			//if((camera.offsetY*8)*2<=mapList.length) {
 				for (let x = 0; x < mapList[y].length; x++) {
-					let tile = mapList[y+(camera.offsetY*8)][x+(camera.offsetX*10)];
-					tilesetImgW = (tileset[tileset2use].naturalWidth/16);
-					tilesetImgH = (tileset[tileset2use].naturalHeight/16);
-					imgX = tile % tilesetImgW; // Compute horizontal frame
-					imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
-					ctx.drawImage(tileset[tileset2use],imgX * basesprSize,imgY * basesprSize,basesprSize, basesprSize,(x * sprSize)+camera.x,(y * sprSize)+camera.y, sprSize, sprSize);
-					//ctx.fillRect(i*sprSize, y*sprSize, sprSize/2, sprSize/2);
+						let tile = mapList[y][x];
+						tilesetImgW = (tileset[tileset2use].naturalWidth/16);
+						tilesetImgH = (tileset[tileset2use].naturalHeight/16);
+						imgX = tile % tilesetImgW; // Compute horizontal frame
+						imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
+						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
+							ctx.drawImage(tileset[tileset2use],imgX * basesprSize,imgY * basesprSize,basesprSize, basesprSize,(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
+						}
+						//ctx.fillRect(i*sprSize, y*sprSize, sprSize/2, sprSize/2);
 				}
-			}
+			//}
 		}
     }
 }
