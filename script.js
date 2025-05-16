@@ -8,11 +8,11 @@ ctx.imageSmoothingEnabled = false;
 const projectProp = {
     verMajor : 0,
     verMinor : 0,
-    verPatch : 2,
-    verDescrp : "More than Creator's Mind!"
+    verPatch : 3,
+    verDescrp : "My own Minecraft"
 }
 
-//a
+document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMinor}.${projectProp.verPatch}`
 
 //TODO: Add a Gameboy color on background behind the screen
 //It makes the game looks more with the original Awakening
@@ -21,8 +21,8 @@ const projectProp = {
 /*
     Layer render for them {
         1-Ground tiles
-        2-Walls
-        3-Ground Items
+        2-Walls - Objects
+        2-Ground Items - Also in the Layer 2
     }
     4-Dropped Items
     5-Entities (Enemies, Player, etc..)
@@ -31,17 +31,35 @@ const projectProp = {
 console.log("Zelda Survival (change name later)");
 console.log("Version "+projectProp.verMajor+"."+projectProp.verMinor+"."+projectProp.verPatch+" - "+projectProp.verDescrp);
 
+let musicList = {};
+musicList["titleScreen"] = new Audio('assets/songs/ballad_of_a_new_start.mp3');
+
+//Ballad of a new Start i think that I will use in the credits screen
+//ALERT! The Ballad of a new Start isn't ready yet
+
+let biomeTiles = [
+	[0, 1, 2, 16, 17, 18, 32, 33, 34],
+	[3, 4, 5, 19, 20, 21, 35, 36, 37],
+	[6, 7, 8, 22, 23, 24, 38, 39, 40],
+	[9, 10, 11, 25, 26, 27, 41, 42, 43]
+];
+
+
 let basesprSize = 16;
 let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
-//Some things for object world generation:
-let objTax = {
-	tree : 2
+let tileAnimation = {
+	timer :
 }
 
-//window.history.pushState({}, '', '/new-url-text');
+//Some things for object world generation:
+let objTax = {
+	tree : 20,
+	bush : 20,
+	rock : 20
+}
 
 let transiting = false;
 let transSide = {
@@ -50,17 +68,6 @@ let transSide = {
 	up : false,
 	down : false
 }
-
-/* let mapGroundList = [
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 2],
-    [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
-    [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
-    [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
-    [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
-    [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
-    [21, 127, 127, 127, 127, 127, 127, 127, 127, 23],
-    [42, 43, 43, 43, 43, 43, 43, 43, 43, 44]
-]; //a pretty basic map to test tiles position */
 
 //10 tiles of left to right
 //8 tiles of up to down (not 9, the last is used for hud, which for some reason is also part of the map)
@@ -84,6 +91,28 @@ let mapGroundList = [
     [35, 36, 36, 36, 36, 36, 36, 36, 36, 37,41,42,42,42,42,42,42,42,42,43]
 ]; //a pretty basic map to test tiles position
 
+for (let y=0; y<mapGroundList.length; y++) { //the world is better now
+	for (let x=0; x<mapGroundList[0].length; x++) {
+		let detailsOnGround = Math.round(Math.random()*4);
+		if (detailsOnGround==0) {
+			switch(mapGroundList[y][x]) {
+				case 17:
+					mapGroundList[y][x]=48;
+					break;
+				case 23:
+					mapGroundList[y][x]=54;
+					break;
+				case 20:
+					mapGroundList[y][x]=51;
+					break;
+				case 26:
+					mapGroundList[y][x]=57;
+					break;
+			}
+		}
+	}
+}
+
 console.log(`Map Y List ${mapGroundList.length} per block: 8`);
 console.log(`Map X List ${mapGroundList[0].length} per block: 10`)
 
@@ -95,39 +124,80 @@ let tileset = {
 	overworld_obj : new Image()
 };
 
-for (let y=0; y<mapGroundList[0].length; y++) {
+for (let y=0; y<mapGroundList.length; y++) { //creating space on the object list
 	mapObjList[y] = [];
-	for (let x=0; x<mapGroundList.length; x++) {
+	for (let x=0; x<mapGroundList[0].length; x++) {
 		mapObjList[y][x] = 256;
 	}
 }
 
-for (let y=mapObjList[0].length-1; y>0; y--) {
-	for (let x=mapObjList.length-1; x>0; x--) {
+for (let y=mapObjList.length-1; y>0; y--) { //object random generation
+	for (let x=mapObjList[0].length-1; x>0; x--) {
 		let tree = Math.round(Math.random()*objTax.tree);
+		let bush = Math.round(Math.random()*objTax.bush);
+		let rock = Math.round(Math.random()*objTax.rock);
+
 		//console.log(tree);
 		if (tree==1) {
 			if (x>1 && y>1) {
-				//if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256)
-				if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
-					mapObjList[y][x]=3;
-				} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
-					mapObjList[y][x]=2;
+				if (y!=(mapObjList.length)/2) {
+					if (x!=mapObjList[0].length/2) {
+						//if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256)
+						if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
+							if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
+								mapObjList[y][x]=37;
+							} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
+								mapObjList[y][x]=2;
+							} else {
+								mapObjList[y][x]=21;
+							}
+							if (mapObjList[y][x-1]==5) {
+								mapObjList[y][x-1]=3;
+							} else if (mapObjList[y][x-1]==4) {
+								mapObjList[y][x-1]=36;
+							} else {
+								mapObjList[y][x-1]=20;
+							}
+							mapObjList[y-1][x]=5;
+							mapObjList[y-1][x-1]=4;
+							//break;
+						}	
+					}
 				} else {
-					mapObjList[y][x]=21;
+					console.log("Trees shouldn't spawn here")
 				}
-				if (mapObjList[y][x-1]==5) {
-					mapObjList[y][x-1]=3;
-				} else if (mapObjList[y][x-1]==4) {
-					mapObjList[y][x-1]=2;
-				} else {
-					mapObjList[y][x-1]=20;
+			}
+		}
+		if (bush==1) {
+			if (x>1 && y>1) {
+				if (mapObjList[y][x]==256) {
+					for (let i=0; i<biomeTiles.length; i++) {
+						for (let biom=0; biom<biomeTiles[i].length; biom++) {
+							if (mapGroundList[y][x]==biomeTiles[i][biom]) {
+								mapObjList[y][x]=16+i;
+							}
+						}
+					}
+					alreadyBush=true;
 				}
-				mapObjList[y-1][x]=5;
-				mapObjList[y-1][x-1]=4;
-				console.log(x);
-				console.log(y);
-				//break;
+			}
+		}
+		if (rock==1) {
+			if (x>1 && y>1) {
+				if (mapObjList[y][x]==256) {
+					for (let i=0; i<biomeTiles.length; i++) {
+						for (let biom=0; biom<biomeTiles[i].length; biom++) {
+							if (mapGroundList[y][x]==biomeTiles[i][biom]) {
+								if (i==1) {
+									mapObjList[y][x]=32;
+								} else {
+									mapObjList[y][x]=32+i;
+								}
+							}
+						}
+					}
+					alreadyRock=true;
+				}
 			}
 		}
 	}
@@ -183,6 +253,11 @@ document.addEventListener("keydown", function(event) {
 	keys[event.key]=true;
 	keyPr[event.key]=true;
 });
+
+document.addEventListener("click", function(event) {
+	musicList["titleScreen"].volume = 0.8;
+	musicList["titleScreen"].play();
+}, {once : true});
 
 document.addEventListener("keyup", function(event) {
 	keys[event.key]=false;
@@ -250,7 +325,7 @@ function _update(deltaTime) {
 				playerProp.direction = 0;
 			}
 		}
-
+		//animation code is here
 		if (moveX!==0 || moveY!==0) {
 			playerProp.fTimer++;
 			if (playerProp.fTimer >= playerProp.fDelay) {
@@ -260,7 +335,8 @@ function _update(deltaTime) {
 		} else {
 			playerProp.frame=0;
 			playerProp.fTimer=0;
-		}	
+		}
+		//use something like this on the tile animation
 	} else if (transiting) {
 		if (transSide.down) {
 			if (camera.y>-512) {
@@ -333,6 +409,13 @@ function _update(deltaTime) {
 			transSide.left = true;
 		}
 	}
+	
+	//tile animation guys
+	playerProp.fTimer++;
+	if (playerProp.fTimer >= playerProp.fDelay) {
+		playerProp.frame = (playerProp.frame + 1) % playerProp.totalF;
+		playerProp.fTimer = 0;
+	}
 }
 
 
@@ -361,11 +444,11 @@ function drawScene(){
 								(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
 								sprSize, sprSize);
 						}
-						if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+						/* if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
 							ctx.globalAlpha = 0.5;
 							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
 							ctx.globalAlpha = 1;
-						}
+						} */
 				}
 				for (let x = 0; x < mapObjList[y].length; x++) {
 						let tile = mapObjList[y][x];
@@ -402,7 +485,7 @@ function _draw() {
 	
 	if (linkSpr.complete) {
 		ctx.drawImage(linkSpr, playerProp.direction*basesprSize, playerProp.frame*basesprSize, basesprSize, basesprSize, playerProp.x, playerProp.y, sprSize, sprSize);
-		ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly);
+		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly);
 	}
 	//the hud is behind the player for some reason
 	//remember to move it back after the tests
