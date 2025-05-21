@@ -20,3 +20,32 @@
 
 ### TO DO:
 - Implement a transition between the map parts
+
+## 05/15/2025:
+- Transition between map parts added
+- Collision Detection
+- Tree random generation added (alpha and very buggy)
+- Bug fixes
+
+### TO DO:
+- Improve Tree generation
+- Add bush and rock generation
+- Create tile collision
+
+### 05/16/2025
+- Fixed a bug where the MapObjList size was inversed (The Y size was the X size and vice-versa)
+- Added Bush and Rock generation
+- Added flowers to spawn randomly on the ground
+- Added the song "Ballad of a new Start" (yeah, its playable, u just need to click on the screen)
+- Fixed the visual bug of the tree generation
+- Improved the tree generation
+- Bush and Rock have biome differences
+- The version is on the title of the website
+
+Now its time to add
+
+*dramatic pause*
+
+**THE PROCEDURAL GENERATION!**
+
+im lying, I want to add tile collision first
