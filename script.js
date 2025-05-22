@@ -8,8 +8,8 @@ ctx.imageSmoothingEnabled = false;
 const projectProp = {
     verMajor : 0,
     verMinor : 0,
-    verPatch : 3,
-    verDescrp : "My own Minecraft"
+    verPatch : 4,
+    verDescrp : "More broken than sleep!"
 }
 
 document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMinor}.${projectProp.verPatch}`
@@ -50,9 +50,7 @@ let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
-let tileAnimation = {
-	timer :
-}
+
 
 //Some things for object world generation:
 let objTax = {
@@ -142,8 +140,8 @@ for (let y=mapObjList.length-1; y>0; y--) { //object random generation
 			if (x>1 && y>1) {
 				if (y!=(mapObjList.length)/2) {
 					if (x!=mapObjList[0].length/2) {
-						//if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256)
-						if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
+						if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
+							if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
 							if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
 								mapObjList[y][x]=37;
 							} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
@@ -161,10 +159,13 @@ for (let y=mapObjList.length-1; y>0; y--) { //object random generation
 							mapObjList[y-1][x]=5;
 							mapObjList[y-1][x-1]=4;
 							//break;
-						}	
+						}
+						}
 					}
 				} else {
 					console.log("Trees shouldn't spawn here")
+					console.log(x);
+					console.log(y);
 				}
 			}
 		}
@@ -228,6 +229,13 @@ let playerProp = {
     fTimer: 0, //player frame timer
     fDelay: 8, //time during a frame and another
 	totalF: 2 //frames for animation
+}
+
+let tileAnim = {
+	fTimer : 0,
+	frame : 0,
+	fDelay : 16,
+	totalF : 4,
 }
 
 playerProp.sclxP = ((sprSize/basesprSize)*4);
@@ -297,10 +305,38 @@ function checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY) {
 	return(obj1prop.right>obj2prop.left && obj1prop.left<obj2prop.right && obj1prop.down>obj2prop.up && obj1prop.up<obj2prop.down);
 }
 
+function getCollisionDir(obj1, tX, tsclX, tY, tsclY) {
+	if (checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY)) {
+		let obj1prop = {
+			left : obj1.x+obj1.sclxP,
+			right : obj1.x+obj1.sclx,
+			up : obj1.y-obj1.sclyP,
+			down : obj1.y+obj1.scly
+		}
+		let obj2prop = {
+			left : tX-basesprSize,
+			right : tsclX+tX,
+			up : tY-basesprSize,
+			down : tY+(basesprSize*2),
+		}
+		if (obj1prop.left<obj2prop.right) {
+			return 1;
+		} else if (obj1prop.right>obj2prop.left) {
+			return 2;
+		} else if (obj1prop.down>obj2prop.up) {
+			return 3;
+		} else if (obj1prop.up<obj2prop.down) {
+			return 4;
+		} else {
+			return 0;
+		}
+	}
+}
+
 function _update(deltaTime) {
 	if (!transiting) {
-		if(keys["d"] || keys["a"]) {moveX=1} else {moveX=0};
-		if(keys["w"] || keys["s"]) {moveY=1} else {moveY=0};
+		if(keys["d"]) {moveX=-1} else if (keys["a"]) {moveX=1} else {moveX=0};
+		if(keys["w"]) {moveY=-1} else if (keys["s"]) {moveY=1} else {moveY=0};
 		if(keys["d"]) {
 			playerProp.x+=1*(sprSize/basesprSize);
 			if (keys["s"]!=true && keys["w"]!=true && keys["a"]!=true) {
@@ -411,11 +447,11 @@ function _update(deltaTime) {
 	}
 	
 	//tile animation guys
-	playerProp.fTimer++;
-	if (playerProp.fTimer >= playerProp.fDelay) {
-		playerProp.frame = (playerProp.frame + 1) % playerProp.totalF;
-		playerProp.fTimer = 0;
+	if (tileAnim.fTimer >= tileAnim.fDelay) {
+		tileAnim.frame = (tileAnim.frame + 1) % tileAnim.totalF;
+		tileAnim.fTimer = 0;
 	}
+	tileAnim.fTimer++;
 }
 
 
@@ -434,6 +470,20 @@ function drawScene(){
 						imgX = tile % tilesetImgW; // Compute horizontal frame
 						imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
 						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
+							if (tile==48 || tile==54 || tile==51 || tile==57) {
+								switch(tileAnim.frame) {
+									case 1:
+										imgX+=1;
+										break;
+									case 2:
+										imgX+=2;
+										break;
+									case 3:
+										imgY+=1;
+										break;
+								}	
+							}
+							
 							ctx.drawImage(
 								tileset[tileset2use],
 								imgX * basesprSize,
@@ -468,6 +518,18 @@ function drawScene(){
 								sprSize, sprSize);
 						}
 						if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+							if (tile!=256) {
+								/* if (playerProp.y < (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))) {  // Player moving down
+									playerProp.y = (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)) - playerProp.scly;
+								} else if (playerProp.y > (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))) {  // Player moving up
+									playerProp.y = (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)) + sprSize;
+								} */
+								if (playerProp.sclxP+playerProp.x>(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))) {
+									playerProp.x=(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))+sprSize-playerProp.sclxP
+								} else if (playerProp.sclxP+playerProp.sclx+playerProp.x>(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))-sprSize+playerProp.sclxP) {
+									playerProp.x=(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))-sprSize+playerProp.sclxP
+								}
+							}
 							ctx.globalAlpha = 0.5;
 							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
 							ctx.globalAlpha = 1;
@@ -492,9 +554,9 @@ function _draw() {
 	ctx.fillStyle = "#FFFF8C";
     ctx.fillRect(0, 512, canvas.width, canvas.height);
     ctx.fillStyle = "#000000";
-    ctx.fillText(playerProp.x, 0, 520);
-    ctx.fillText(playerProp.y, 0, 530);
-    ctx.fillText(playerProp.frame, 0, 540);
-    ctx.fillText(playerProp.direction, 0, 550);
-	ctx.fillText(playerProp.sclx+playerProp.x, 0, 560);
+    ctx.fillText(`Player X: ${playerProp.x} Player Y: ${playerProp.y}`, 0, 520);
+	ctx.fillText(`Player ScaleX point: ${playerProp.sclx+playerProp.x} Player ScaleY point: ${playerProp.scly+playerProp.y}`, 0, 530);
+    ctx.fillText(`Player Current Animation Frame: ${playerProp.frame}`, 0, 540);
+    ctx.fillText(`Player Direction: ${playerProp.direction}`, 0, 550);
+	ctx.fillText(`Current Tile Animation Frame: ${tileAnim.frame}`, 0, 570);
 }
