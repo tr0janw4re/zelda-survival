@@ -1,0 +1,113 @@
+Assisti ao vídeo `Zelda Survival - 0.0.4` e entendi o problema: a colisão no eixo **Y** está causando comportamento inesperado — o Link “salta” para posições incorretas ou entra no tile em vez de parar suavemente na borda.
+
+Isso acontece porque o sistema de colisão está tentando corrigir a posição **depois** da colisão já ter acontecido, e sem verificar corretamente a direção do movimento.
+
+---
+
+### ✅ Solução adequada: **colisão separada por eixo + previsão**
+
+A maneira correta (e fiel ao *Link’s Awakening*) é:
+
+1. **Mover no eixo X**, verificar colisão, corrigir.
+2. **Mover no eixo Y**, verificar colisão, corrigir.
+
+Esse método se chama **colisão separada por eixo (axis-aligned step)**, e é usado em jogos 2D clássicos.
+
+---
+
+### 🛠️ Implementação passo a passo
+
+#### ✅ 1. Separe o movimento do jogador:
+
+No `_update()`, ao invés de mover o jogador diretamente com:
+
+```js
+playerProp.x += velocidade;
+playerProp.y += velocidade;
+```
+
+Use:
+
+```js
+let deltaX = 0;
+let deltaY = 0;
+const speed = (sprSize / basesprSize);
+
+if (keys["d"]) {
+    deltaX += speed;
+    if (!keys["w"] && !keys["s"] && !keys["a"]) playerProp.direction = 1;
+}
+if (keys["a"]) {
+    deltaX -= speed;
+    if (!keys["w"] && !keys["s"] && !keys["d"]) playerProp.direction = 3;
+}
+if (keys["w"]) {
+    deltaY -= speed;
+    if (!keys["a"] && !keys["s"] && !keys["d"]) playerProp.direction = 2;
+}
+if (keys["s"]) {
+    deltaY += speed;
+    if (!keys["a"] && !keys["w"] && !keys["d"]) playerProp.direction = 0;
+}
+```
+
+---
+
+#### ✅ 2. Aplique colisão e movimento em dois passos:
+
+```js
+// Movimento X
+playerProp.x += deltaX;
+if (checkCollisionWithObjects(playerProp)) {
+    playerProp.x -= deltaX; // desfaz movimento se colidiu
+}
+
+// Movimento Y
+playerProp.y += deltaY;
+if (checkCollisionWithObjects(playerProp)) {
+    playerProp.y -= deltaY;
+}
+```
+
+---
+
+#### ✅ 3. Função de colisão otimizada por tile:
+
+Crie esta função fora do `_update()`:
+
+```js
+function checkCollisionWithObjects(obj) {
+    for (let y = 0; y < mapObjList.length; y++) {
+        for (let x = 0; x < mapObjList[0].length; x++) {
+            const tile = mapObjList[y][x];
+            if (tile === 256) continue;
+
+            const tileX = (x * sprSize) + camera.x - (camera.offsetX * (10 * sprSize));
+            const tileY = (y * sprSize) + camera.y - (camera.offsetY * (8 * sprSize));
+
+            if (checkCollisionInTiles(obj, tileX, sprSize, tileY, sprSize)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+```
+
+---
+
+### ✅ Vantagens dessa abordagem:
+
+* O Link vai parar **antes de entrar no tile**.
+* A posição fica estável e sem saltos visuais.
+* Funciona tanto com colisão X quanto Y, separadamente, e é fácil de expandir.
+
+---
+
+### 📌 Observação:
+
+Você pode manter o `checkCollisionInTiles(...)` como está, só vai usá-lo com essa nova lógica de **verificação antes da correção**, em vez de aplicar "teleporte" forçado como no `drawScene()`.
+
+---
+
+Se quiser, posso aplicar essas mudanças diretamente no seu código atual e te entregar um bloco final ajustado. Deseja isso?
