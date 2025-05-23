@@ -169,9 +169,9 @@ for (let y=mapObjList.length-1; y>0; y--) { //object random generation
 						}
 					}
 				} else {
-					console.log("Trees shouldn't spawn here")
+					/* console.log("Trees shouldn't spawn here")
 					console.log(x);
-					console.log(y);
+					console.log(y); */
 				}
 			}
 		}
@@ -341,6 +341,49 @@ const plyspeed = (sprSize/basesprSize);
 let playerInListXPos = 0;
 let playerInListYPos = 0;
 
+function exportObjMap() {
+  // Convert mapList array into a string
+  let mapData = mapObjList.map(row => row.join(",")).join("\n");
+  
+  // Create a Blob object
+  let blob = new Blob([mapData], { type: "text/plain" });
+  
+  // Create a URL for the Blob
+  let url = URL.createObjectURL(blob);
+  
+  // Create a link element
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "worldObjData.dat";
+  
+  mapData = mapGroundList.map(row => row.join(",")).join("\n");
+  
+  // Create a Blob object
+  blob = new Blob([mapData], { type: "text/plain" });
+  
+  // Create a URL for the Blob
+  url = URL.createObjectURL(blob);
+  
+  // Create a link element
+  a = document.createElement("a");
+  a.href = url;
+  a.download = "worldGrdData.dat";
+  
+  // Programmatically click the link to trigger the download
+  a.click();
+  
+  // Clean up the URL object
+  URL.revokeObjectURL(url);
+}
+
+const exportButton = document.createElement("button");
+exportButton.textContent = "Export Objects Map List";
+exportButton.onclick = exportObjMap;
+document.body.appendChild(exportButton);
+
+
+
+
 function _update(deltaTime) {
 	let deltaX = 0;
 	let deltaY = 0;
@@ -372,9 +415,11 @@ function _update(deltaTime) {
 			}
 		}
 		if(keys["j"]) {
-			if (mapObjList[playerInListYPos][playerInListXPos]==256) {
+			//if (mapObjList[playerInListYPos][playerInListXPos]==256) {
+			//for (let i=0; i<biomeTiles)
+			//if (mapGroundList[playerInListXPos][playerInListYPos])
 				mapObjList[playerInListYPos][playerInListXPos] = selectedBlock;
-			}
+			//}
 		}
 		
 		playerProp.x+=deltaX;
