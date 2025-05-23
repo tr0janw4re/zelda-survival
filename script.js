@@ -277,6 +277,18 @@ document.addEventListener("keyup", function(event) {
 	keys[event.key]=false;
 });
 
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener("mousemove", function(event) {
+ mouseX = event.clientX - 8;
+ mouseY = event.clientY - 8;
+});
+
+document.addEventListener('click', () => {
+ mouseClick = true;
+});
+
 let lastTime = performance.now();
 let fps = 0;
 
