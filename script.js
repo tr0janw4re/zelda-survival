@@ -518,6 +518,7 @@ function drawScene(){
 								sprSize, sprSize);
 						}
 						if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+							let tileY = (y * sprSize) + camera.y - (camera.offsetY * (8 * sprSize));
 							if (tile!=256) {
 								/* if (playerProp.y < (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))) {  // Player moving down
 									playerProp.y = (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)) - playerProp.scly;
@@ -528,6 +529,12 @@ function drawScene(){
 									playerProp.x=(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))+sprSize-playerProp.sclxP
 								} else if (playerProp.sclxP+playerProp.sclx+playerProp.x>(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))-sprSize+playerProp.sclxP) {
 									playerProp.x=(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))-sprSize+playerProp.sclxP
+								}
+								
+								if (playerProp.y + playerProp.scly > tileY && moveY > 0) {
+									playerProp.y = tileY - playerProp.scly;
+								} else if (playerProp.y < tileY + sprSize && moveY < 0) {
+									playerProp.y = tileY + sprSize;
 								}
 							}
 							ctx.globalAlpha = 0.5;
