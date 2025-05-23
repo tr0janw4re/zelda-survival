@@ -8,8 +8,8 @@ ctx.imageSmoothingEnabled = false;
 const projectProp = {
     verMajor : 0,
     verMinor : 0,
-    verPatch : 4,
-    verDescrp : "More broken than sleep!"
+    verPatch : 5,
+    verDescrp : "The best overall!"
 }
 
 document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMinor}.${projectProp.verPatch}`
@@ -28,6 +28,8 @@ document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMino
     5-Entities (Enemies, Player, etc..)
 */
 
+let selectedBlock = 38;
+
 console.log("Zelda Survival (change name later)");
 console.log("Version "+projectProp.verMajor+"."+projectProp.verMinor+"."+projectProp.verPatch+" - "+projectProp.verDescrp);
 
@@ -43,6 +45,10 @@ let biomeTiles = [
 	[6, 7, 8, 22, 23, 24, 38, 39, 40],
 	[9, 10, 11, 25, 26, 27, 41, 42, 43]
 ];
+
+let specialTiles = [
+	[38, 39, 256] //this tiles the player won't collide
+]
 
 
 let basesprSize = 16;
@@ -305,62 +311,83 @@ function checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY) {
 	return(obj1prop.right>obj2prop.left && obj1prop.left<obj2prop.right && obj1prop.down>obj2prop.up && obj1prop.up<obj2prop.down);
 }
 
-function getCollisionDir(obj1, tX, tsclX, tY, tsclY) {
-	if (checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY)) {
-		let obj1prop = {
-			left : obj1.x+obj1.sclxP,
-			right : obj1.x+obj1.sclx,
-			up : obj1.y-obj1.sclyP,
-			down : obj1.y+obj1.scly
-		}
-		let obj2prop = {
-			left : tX-basesprSize,
-			right : tsclX+tX,
-			up : tY-basesprSize,
-			down : tY+(basesprSize*2),
-		}
-		if (obj1prop.left<obj2prop.right) {
-			return 1;
-		} else if (obj1prop.right>obj2prop.left) {
-			return 2;
-		} else if (obj1prop.down>obj2prop.up) {
-			return 3;
-		} else if (obj1prop.up<obj2prop.down) {
-			return 4;
-		} else {
-			return 0;
+function checkCollisionWithObj(obj) {
+	let dontcol = false;
+	for(let y=0; y<mapObjList.length; y++) {
+		for (let x=0; x<mapObjList[0].length; x++) {
+			dontcol=false;
+			const tile = mapObjList[y][x];
+			
+			for (i=0; i<specialTiles[0].length; i++) {
+				if (mapObjList[y][x]==specialTiles[0][i]) {
+					dontcol=true;
+				}
+			}
+			
+			if (dontcol==false) {
+				const tileX = (x*sprSize) + camera.x - (camera.offsetX * (10*sprSize));
+				const tileY = (y*sprSize) + camera.y - (camera.offsetY * (8*sprSize));
+			
+				if (checkCollisionInTiles(obj, tileX, sprSize, tileY, sprSize)) {
+					return true;
+				}
+			}
 		}
 	}
+	
+	return false;
 }
+const plyspeed = (sprSize/basesprSize);
+let playerInListXPos = 0;
+let playerInListYPos = 0;
 
 function _update(deltaTime) {
+	let deltaX = 0;
+	let deltaY = 0;
 	if (!transiting) {
 		if(keys["d"]) {moveX=-1} else if (keys["a"]) {moveX=1} else {moveX=0};
 		if(keys["w"]) {moveY=-1} else if (keys["s"]) {moveY=1} else {moveY=0};
 		if(keys["d"]) {
-			playerProp.x+=1*(sprSize/basesprSize);
+			deltaX+=plyspeed;
 			if (keys["s"]!=true && keys["w"]!=true && keys["a"]!=true) {
 				playerProp.direction = 1;
 			}
 		}
 		if(keys["a"]) {
-			playerProp.x-=1*(sprSize/basesprSize);
+			deltaX-=plyspeed;
 			if (keys["s"]!=true && keys["w"]!=true && keys["d"]!=true) {
 				playerProp.direction = 3;
 			}
 		}
 		if(keys["w"]) {
-			playerProp.y-=(1*(sprSize/basesprSize));
+			deltaY-=plyspeed;
 			if (keys["s"]!=true && keys["a"]!=true && keys["d"]!=true) {
 				playerProp.direction = 2;
 			}
 		}
 		if(keys["s"]) {
-			playerProp.y+=1*(sprSize/basesprSize);
+			deltaY+=plyspeed;
 			if (keys["w"]!=true && keys["a"]!=true && keys["d"]!=true) {
 				playerProp.direction = 0;
 			}
 		}
+		if(keys["j"]) {
+			if (mapObjList[playerInListYPos][playerInListXPos]==256) {
+				mapObjList[playerInListYPos][playerInListXPos] = selectedBlock;
+			}
+		}
+		
+		playerProp.x+=deltaX;
+		if (checkCollisionWithObj(playerProp)) {
+			playerProp.x -= deltaX;
+		}
+		
+		playerProp.y+=deltaY;
+		if (checkCollisionWithObj(playerProp)) {
+			playerProp.y-=deltaY;
+		}
+		
+		
 		//animation code is here
 		if (moveX!==0 || moveY!==0) {
 			playerProp.fTimer++;
@@ -373,6 +400,7 @@ function _update(deltaTime) {
 			playerProp.fTimer=0;
 		}
 		//use something like this on the tile animation
+		
 	} else if (transiting) {
 		if (transSide.down) {
 			if (camera.y>-512) {
@@ -423,6 +451,9 @@ function _update(deltaTime) {
 			}
 		}
 	}
+	
+	playerInListXPos=Math.round((playerProp.x/sprSize)+camera.offsetX*10);
+	playerInListYPos=Math.round((playerProp.y/sprSize)+camera.offsetY*8);
 	//Player map change
 	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>=512 && transiting==false) {
 		if (((camera.offsetY+1)*8)*2<=mapGroundList.length) {
@@ -454,13 +485,20 @@ function _update(deltaTime) {
 	tileAnim.fTimer++;
 }
 
-
+function drawPlayer() {
+	if (linkSpr.complete) {
+		ctx.drawImage(linkSpr, playerProp.direction*basesprSize, playerProp.frame*basesprSize, basesprSize, basesprSize, playerProp.x, playerProp.y, sprSize, sprSize);
+		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly); //this is for link's collision your dumbass
+		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly/2); //this is for visible drawing your dumbass
+	}
+}
 
 function drawScene(){
 	if (tileset[tileset2use].complete) {
 		//BUG FIX GUYS!!1!
 		let imgX = 0;
 		let imgY = 0;
+		let playerDraw = false;
         for (let y = 0; y < mapGroundList.length; y++) { //optomize the map draw, his length is too big to be drawed entirelly
 			//if((camera.offsetY*8)*2<=mapGroundList.length) {
 				for (let x = 0; x < mapGroundList[y].length; x++) {
@@ -507,7 +545,14 @@ function drawScene(){
 						imgX = tile % 16; // Compute horizontal frame
 						imgY = Math.floor(tile / 16); // Compute vertical frame
 						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
-							ctx.drawImage(
+							/* if (tile!=256) {
+								if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<playerProp.sclyP+playerProp.y+(playerProp.scly/2)) {
+									drawPlayer();
+									playerDraw=true;
+								}
+							} */
+							//if (tile!=256) {
+								ctx.drawImage(
 								tileset["overworld_obj"],
 								imgX * basesprSize,
 								imgY * basesprSize,
@@ -516,31 +561,16 @@ function drawScene(){
 								(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
 								(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
 								sprSize, sprSize);
+							//}
 						}
 						if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
-							let tileY = (y * sprSize) + camera.y - (camera.offsetY * (8 * sprSize));
-							if (tile!=256) {
-								/* if (playerProp.y < (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))) {  // Player moving down
-									playerProp.y = (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)) - playerProp.scly;
-								} else if (playerProp.y > (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))) {  // Player moving up
-									playerProp.y = (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)) + sprSize;
-								} */
-								if (playerProp.sclxP+playerProp.x>(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))) {
-									playerProp.x=(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))+sprSize-playerProp.sclxP
-								} else if (playerProp.sclxP+playerProp.sclx+playerProp.x>(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))-sprSize+playerProp.sclxP) {
-									playerProp.x=(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))-sprSize+playerProp.sclxP
-								}
-								
-								if (playerProp.y + playerProp.scly > tileY && moveY > 0) {
-									playerProp.y = tileY - playerProp.scly;
-								} else if (playerProp.y < tileY + sprSize && moveY < 0) {
-									playerProp.y = tileY + sprSize;
-								}
-							}
 							ctx.globalAlpha = 0.5;
 							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
 							ctx.globalAlpha = 1;
 						}
+				}
+				if (playerDraw==false) {
+					drawPlayer();
 				}
 			//}
 		}
@@ -551,11 +581,12 @@ function _draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height); //it cleans the screen
 	ctx.fillStyle = "#ffffff";
 	drawScene();
-	
-	if (linkSpr.complete) {
-		ctx.drawImage(linkSpr, playerProp.direction*basesprSize, playerProp.frame*basesprSize, basesprSize, basesprSize, playerProp.x, playerProp.y, sprSize, sprSize);
-		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly);
-	}
+	ctx.fillStyle = "#ff0000";
+	ctx.globalAlpha=0.5;
+	//ctx.fillRect((playerInListXPos-(camera.offsetX*10))*sprSize, (playerInListYPos-(camera.offsetY*8))*sprSize, sprSize, sprSize);
+	ctx.globalAlpha=1;
+	ctx.fillStyle = "#000000";
+	//drawPlayer();
 	//the hud is behind the player for some reason
 	//remember to move it back after the tests
 	ctx.fillStyle = "#FFFF8C";
@@ -565,5 +596,6 @@ function _draw() {
 	ctx.fillText(`Player ScaleX point: ${playerProp.sclx+playerProp.x} Player ScaleY point: ${playerProp.scly+playerProp.y}`, 0, 530);
     ctx.fillText(`Player Current Animation Frame: ${playerProp.frame}`, 0, 540);
     ctx.fillText(`Player Direction: ${playerProp.direction}`, 0, 550);
+	ctx.fillText(`Player In List X: ${playerInListXPos} Y: ${playerInListYPos}`, 0, 560);
 	ctx.fillText(`Current Tile Animation Frame: ${tileAnim.frame}`, 0, 570);
 }
