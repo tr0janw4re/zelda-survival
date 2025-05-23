@@ -16,4 +16,6 @@ it doesn't have an story, by autoexplain reasons
 my idea is make this game have a LOT of alternative versions, being on my mind these versions:
 
 - Web game version: this version
-- GBC version : 
+- GBC version : I want A LOT to make a port to the Gameboy Color, because how u know, the original game was made on the original Gameboy (and after it get a remake to the Gameboy Color)
+- PC Executable Version : I hate web development, and I'm very limited on what I can do using HTML and Javascript, so I want to make a remake for the PC with a lot of another things
+- DS version: yes
