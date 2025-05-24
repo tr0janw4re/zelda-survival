@@ -7,9 +7,9 @@ ctx.imageSmoothingEnabled = false;
 
 const projectProp = {
     verMajor : 0,
-    verMinor : 0,
-    verPatch : 5,
-    verDescrp : "The best overall!"
+    verMinor : 1,
+    verPatch : 0,
+    verDescrp : "Infinite Infinity"
 }
 
 document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMinor}.${projectProp.verPatch}`
@@ -229,7 +229,7 @@ let playerProp = {
     x : 0, //player X
     y : 0, //player Y
 	sclx : sprSize-((sprSize/basesprSize)*8),
-	scly : sprSize-((sprSize/basesprSize)*8),
+	scly : sprSize-((sprSize/basesprSize)*8)+16,
     direction: 0, //player direction
     frame: 0, //player animation actual frame
     fTimer: 0, //player frame timer
@@ -512,22 +512,22 @@ function _update(deltaTime) {
 	playerInListXPos=Math.round((playerProp.x/sprSize)+camera.offsetX*10);
 	playerInListYPos=Math.round((playerProp.y/sprSize)+camera.offsetY*8);
 	//Player map change
-	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>=512 && transiting==false) {
+	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>512 && transiting==false) {
 		if (((camera.offsetY+1)*8)*2<=mapGroundList.length) {
 			transiting = true;
 			transSide.down = true;
 		}
-	}if (playerProp.y+((sprSize/basesprSize)*4)<=0 && transiting==false) {
+	}if (playerProp.y+((sprSize/basesprSize)*4)<0 && transiting==false) {
 		if (camera.offsetY>0) {
 			transiting = true;
 			transSide.up = true;
 		}
-	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>=640 && transiting==false) {
+	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>640 && transiting==false) {
 		if (((camera.offsetX+1)*8)*2<=mapGroundList[0].length) {
 			transiting = true;
 			transSide.right = true;
 		}
-	}if (playerProp.x+((sprSize/basesprSize)*4)<=0 && transiting==false) {
+	}if (playerProp.x+((sprSize/basesprSize)*4)<0 && transiting==false) {
 		if (camera.offsetX>0) {
 			transiting = true;
 			transSide.left = true;
