@@ -15,7 +15,7 @@
 - Make it works better
 
 ## 05/14/2025:
-- The map switch has been improved, and now you change any side of the map instead only in Y coordinate
+- The map switch has been improved, and now you change any side of the map instead of only in Y coordinate
 - Bug fixes
 
 ### TO DO:
@@ -32,10 +32,10 @@
 - Add bush and rock generation
 - Create tile collision
 
-### 05/16/2025
+## 05/16/2025
 - Fixed a bug where the MapObjList size was inversed (The Y size was the X size and vice-versa)
-- Added Bush and Rock generation
-- Added flowers to spawn randomly on the ground
+- Were added bush and rock generation
+- Was added flowers to spawn randomly on the ground
 - Added the song "Ballad of a new Start" (yeah, its playable, u just need to click on the screen)
 - Fixed the visual bug of the tree generation
 - Improved the tree generation
@@ -65,6 +65,30 @@ I will fix the tile collision someday (the check is happening on the draw functi
 - Now you can place blocks on the ground (only a hole, 'cause the dungeon walls are on the dungeon tileset)
 - I started to make a thing that the player will appear behind certain objects depending of its position
 - It now have a list that contains special tiles, that have properties that other tiles don't
+- Trying to make a way to export and import maps to the game
 
-**maybe** i make somethings more, and after I will finnaly make
+**maybe** i gonna make somethings more, and after that I will finally make
 **THE PROCEDURAL GENERATION!**
+
+## 05/24/2025
+
+yeah, instead of do my homework, i decided to make other changes
+
+- Now I fixed the collision, so now, Link collides with objects outside of the screen, so you won't enter inside a bush and get stuck
+when you pass from a screen to another
+- The web tab now haves a icon!
+- That thing of link appear behind of certain objects depending of his position was scrapped (the original game doesn't have that)
+
+Now is the time, that EVERYONE was waiting
+
+**dramatic drums**
+**dramatic pause**
+
+**THE F*CKING PROCEDURAL GENERATION!!!!!!**
+
+yey
+
+keep note that now, we aren't in the version 0.0.5,
+we are in the version 0.**1**.0
+
+(my first project that the minor version isn't 0!)
