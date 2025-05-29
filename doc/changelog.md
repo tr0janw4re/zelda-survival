@@ -92,3 +92,11 @@ keep note that now, we aren't in the version 0.0.5,
 we are in the version 0.**1**.0
 
 (my first project that the minor version isn't 0!)
+
+## 05/29/2025
+
+After a time, Im backing to code this game
+
+- Added mobile controls (VERY ugly and its just a placeholder until I get a GBC sprite)
+- Added a hud with the selected items in each button
+- Added rupees! *kaching!*
