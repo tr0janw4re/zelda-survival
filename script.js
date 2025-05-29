@@ -56,7 +56,19 @@ let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
+let rupees = 123;
 
+let linkLife = {
+	life : 3,
+	maxLife : 4
+}
+
+let mobileCntrl = {
+	left : false,
+	down : false,
+	up : false,
+	right : false
+}
 
 //Some things for object world generation:
 let objTax = {
@@ -218,6 +230,9 @@ tileset["overworld_obj"].src = "assets/tileset/overworld/overworld_t_obj.png";
 let linkSpr = new Image();
 linkSpr.src = "assets/linksprtest.png";
 
+let hudImg = new Image();
+hudImg.src = "assets/hud/weaponHud.png";
+
 tileset[tileset2use].onload = () => {
     gameLoop(); //only starts the game when the image load
 };
@@ -260,6 +275,10 @@ let moveY = 0;
 const keys={};
 const keyPr={};
 
+let selItem = {
+	A : 0,
+	B : 8
+}
 
 let frame = 0;
 
@@ -268,10 +287,10 @@ document.addEventListener("keydown", function(event) {
 	keyPr[event.key]=true;
 });
 
-document.addEventListener("click", function(event) {
+/* document.addEventListener("click", function(event) {
 	musicList["titleScreen"].volume = 0.8;
 	musicList["titleScreen"].play();
-}, {once : true});
+}, {once : true}); */
 
 document.addEventListener("keyup", function(event) {
 	keys[event.key]=false;
@@ -354,38 +373,42 @@ let playerInListXPos = 0;
 let playerInListYPos = 0;
 
 function exportObjMap() {
-  // Convert mapList array into a string
-  let mapData = mapObjList.map(row => row.join(",")).join("\n");
-  
-  // Create a Blob object
-  let blob = new Blob([mapData], { type: "text/plain" });
-  
-  // Create a URL for the Blob
-  let url = URL.createObjectURL(blob);
-  
-  // Create a link element
-  let a = document.createElement("a");
-  a.href = url;
-  a.download = "worldObjData.dat";
-  
-  mapData = mapGroundList.map(row => row.join(",")).join("\n");
-  
-  // Create a Blob object
-  blob = new Blob([mapData], { type: "text/plain" });
-  
-  // Create a URL for the Blob
-  url = URL.createObjectURL(blob);
-  
-  // Create a link element
-  a = document.createElement("a");
-  a.href = url;
-  a.download = "worldGrdData.dat";
-  
-  // Programmatically click the link to trigger the download
-  a.click();
-  
-  // Clean up the URL object
-  URL.revokeObjectURL(url);
+	// Convert mapList array into a string
+	let mapData = mapObjList.map(row => row.join(",")).join("\n");
+	  
+	// Create a Blob object
+	let blob = new Blob([mapData], { type: "text/plain" });
+	  
+	// Create a URL for the Blob
+	let url = URL.createObjectURL(blob);
+	  
+	// Create a link element
+	let a = document.createElement("a");
+	a.href = url;
+	a.download = "worldObjData.dat";
+	  
+	a.click();
+	  
+	URL.revokeObjectURL(url);
+	  
+	mapData = mapGroundList.map(row => row.join(",")).join("\n");
+	  
+	// Create a Blob object
+	blob = new Blob([mapData], { type: "text/plain" });
+	  
+	// Create a URL for the Blob
+	url = URL.createObjectURL(blob);
+	  
+	// Create a link element
+	a = document.createElement("a");
+	a.href = url;
+	a.download = "worldGrdData.dat";
+	  
+	// Programmatically click the link to trigger the download
+	a.click();
+	  
+	// Clean up the URL object
+	URL.revokeObjectURL(url);
 }
 
 const exportButton = document.createElement("button");
@@ -393,36 +416,82 @@ exportButton.textContent = "Export Objects Map List";
 exportButton.onclick = exportObjMap;
 document.body.appendChild(exportButton);
 
+const rightButton = document.createElement("button");
+rightButton.textContent = "Right Button";
 
+rightButton.addEventListener("touchstart", () => {
+	mobileCntrl.right = true;
+});
 
+rightButton.addEventListener("touchend", () => {
+	mobileCntrl.right = false;
+});
+
+const leftButton = document.createElement("button");
+leftButton.textContent = "Left Button";
+
+leftButton.addEventListener("touchstart", () => {
+	mobileCntrl.left = true;
+});
+
+leftButton.addEventListener("touchend", () => {
+	mobileCntrl.left = false;
+});
+
+const upButton = document.createElement("button");
+upButton.textContent = "Up Button";
+
+upButton.addEventListener("touchstart", () => {
+	mobileCntrl.up = true;
+});
+
+upButton.addEventListener("touchend", () => {
+	mobileCntrl.up = false;
+});
+
+const downButton = document.createElement("button");
+downButton.textContent = "Down Button";
+
+downButton.addEventListener("touchstart", () => {
+	mobileCntrl.down = true;
+});
+
+downButton.addEventListener("touchend", () => {
+	mobileCntrl.down = false;
+});
+
+document.body.appendChild(leftButton);
+document.body.appendChild(rightButton);
+document.body.appendChild(downButton);
+document.body.appendChild(upButton);
 
 function _update(deltaTime) {
 	let deltaX = 0;
 	let deltaY = 0;
 	if (!transiting) {
-		if(keys["d"]) {moveX=-1} else if (keys["a"]) {moveX=1} else {moveX=0};
-		if(keys["w"]) {moveY=-1} else if (keys["s"]) {moveY=1} else {moveY=0};
-		if(keys["d"]) {
+		if(keys["d"] || mobileCntrl.right) {moveX=-1} else if (keys["a"] || mobileCntrl.left) {moveX=1} else {moveX=0};
+		if(keys["w"] || mobileCntrl.up) {moveY=-1} else if (keys["s"] || mobileCntrl.down) {moveY=1} else {moveY=0};
+		if(keys["d"] || mobileCntrl.right) {
 			deltaX+=plyspeed;
-			if (keys["s"]!=true && keys["w"]!=true && keys["a"]!=true) {
+			if (keys["s"] || mobileCntrl.down!=true && keys["w"] || mobileCntrl.up!=true && keys["a"] || mobileCntrl.left!=true) {
 				playerProp.direction = 1;
 			}
 		}
-		if(keys["a"]) {
+		if(keys["a"] || mobileCntrl.left) {
 			deltaX-=plyspeed;
-			if (keys["s"]!=true && keys["w"]!=true && keys["d"]!=true) {
+			if (keys["s"] || mobileCntrl.down!=true && keys["w"] || mobileCntrl.up!=true && keys["d"] || mobileCntrl.right!=true) {
 				playerProp.direction = 3;
 			}
 		}
-		if(keys["w"]) {
+		if(keys["w"] || mobileCntrl.up) {
 			deltaY-=plyspeed;
-			if (keys["s"]!=true && keys["a"]!=true && keys["d"]!=true) {
+			if (keys["s"] || mobileCntrl.down!=true && keys["a"] || mobileCntrl.left!=true && keys["d"] || mobileCntrl.right!=true) {
 				playerProp.direction = 2;
 			}
 		}
-		if(keys["s"]) {
+		if(keys["s"] || mobileCntrl.down) {
 			deltaY+=plyspeed;
-			if (keys["w"]!=true && keys["a"]!=true && keys["d"]!=true) {
+			if (keys["w"] || mobileCntrl.up!=true && keys["a"] || mobileCntrl.left!=true && keys["d"] || mobileCntrl.right!=true) {
 				playerProp.direction = 0;
 			}
 		}
@@ -540,6 +609,10 @@ function _update(deltaTime) {
 		tileAnim.fTimer = 0;
 	}
 	tileAnim.fTimer++;
+	
+	if (rupees>999) {
+		rupees=999;
+	}
 }
 
 function drawPlayer() {
@@ -547,6 +620,35 @@ function drawPlayer() {
 		ctx.drawImage(linkSpr, playerProp.direction*basesprSize, playerProp.frame*basesprSize, basesprSize, basesprSize, playerProp.x, playerProp.y, sprSize, sprSize);
 		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly); //this is for link's collision your dumbass
 		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly/2); //this is for visible drawing your dumbass
+	}
+}
+
+function drawHud() {
+	if (hudImg.complete) {
+		//main A and B buttons
+		ctx.drawImage(hudImg, 0, 0, basesprSize*2+1, basesprSize, sprSize/basesprSize, 512, sprSize*2, sprSize);
+		ctx.drawImage(hudImg, selItem.A*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, ((sprSize/basesprSize)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
+		ctx.drawImage(hudImg, (basesprSize*2)+1, 0, basesprSize*2+1, basesprSize, (sprSize/basesprSize+sprSize*2)+7*4, 512, sprSize*2, sprSize);
+		ctx.drawImage(hudImg, selItem.B*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, (((sprSize/basesprSize+sprSize*2)+7*4)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
+		//rupees counter (I need to use Rupees for something)
+		ctx.drawImage(hudImg, (basesprSize/2)*9, 0, basesprSize/2, basesprSize/2, 81*(sprSize/basesprSize), 512, sprSize/2, sprSize/2);
+		//the numbers guys
+		let rupeeList = rupees.toString().split("");
+		let rupeeLen = rupees.toString().length;
+		//TODO: Make the numbers always have 3 houses, for example: 5 become 005
+		for (let i=0; i<rupeeLen; i++) {
+			ctx.drawImage(
+				hudImg, 
+				4*(basesprSize/2)+(rupeeList[i]*(basesprSize/2)),
+				(basesprSize/2)*4,
+				basesprSize/2,
+				basesprSize/2,
+				81*(sprSize/basesprSize)+(i*(8*(sprSize/basesprSize))),
+				512+(8*(sprSize/basesprSize)),
+				sprSize/2,
+				sprSize/2
+			);
+		}
 	}
 }
 
@@ -649,6 +751,7 @@ function _draw() {
 	ctx.fillStyle = "#FFFF8C";
     ctx.fillRect(0, 512, canvas.width, canvas.height);
     ctx.fillStyle = "#000000";
+	drawHud();
     ctx.fillText(`Player X: ${playerProp.x} Player Y: ${playerProp.y}`, 0, 520);
 	ctx.fillText(`Player ScaleX point: ${playerProp.sclx+playerProp.x} Player ScaleY point: ${playerProp.scly+playerProp.y}`, 0, 530);
     ctx.fillText(`Player Current Animation Frame: ${playerProp.frame}`, 0, 540);
