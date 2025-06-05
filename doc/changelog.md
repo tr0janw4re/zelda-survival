@@ -96,7 +96,30 @@ we are in the version 0.**1**.0
 ## 05/29/2025
 
 After a time, Im backing to code this game
-
+nothing that I added was related with **THE F*CKING PROCEDURAL GENERATION!!!!!!**
+'cause I forgot
 - Added mobile controls (VERY ugly and its just a placeholder until I get a GBC sprite)
 - Added a hud with the selected items in each button
-- Added rupees! *kaching!*
+- Added rupee counter! *kaching!*
+
+## 05/30/2025
+
+Mobile exists...:(
+
+- Now the controls aren't specific keyboard keys anymore, they are a object with the controls names
+- The mouse is the same thing that the touch
+- Added health counter (broken)
+
+## 06/05/2025
+
+Happy new month!
+
+- Mobile controls were removed
+- The health counter functionality was rewrote
+
+Now, I will finally make **THE F*CKING PROCEDURAL GENERATION!!!!!!**
+
+And the coding starts...
+NOW!:
+- Started to do TFPG
+- Implemented TFPG (alpha), it only spawns the 0 tile from each biome instead of creating a lookable terrain
