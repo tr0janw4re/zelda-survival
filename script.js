@@ -56,18 +56,35 @@ let sprSize = 64;
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
+let worldSize = {
+	width : 4,
+	height : 4,
+}
+let chunk = 8; //dont change it
+
+let biomeTypes = [
+	"Grass Field",
+	"Dark Forest",
+	"Sepian Mount",
+	"Mytical Forest"
+]
+
 let rupees = 123;
 
 let linkLife = {
-	life : 3,
+	life : 3.5,
 	maxLife : 4
 }
 
-let mobileCntrl = {
-	left : false,
-	down : false,
-	up : false,
-	right : false
+let controls = {
+	left:false,
+	down:false,
+	up:false,
+	right:false,
+	a:false,
+	b:false,
+	select:false,
+	start:false
 }
 
 //Some things for object world generation:
@@ -85,10 +102,77 @@ let transSide = {
 	down : false
 }
 
+let mouse = {
+	x:0,
+	y:0,
+	down:false
+}
+
+let devMode = {
+	on : true,
+	debugTxt : true,
+	linkColl : true,
+	hideObj : false,
+	hideGrnd : false,
+	hideHud : false,
+	hideEntities : false
+}
+
 //10 tiles of left to right
 //8 tiles of up to down (not 9, the last is used for hud, which for some reason is also part of the map)
 
-let mapGroundList = [
+//here is where the world is generated
+let perChunkWorld = [];
+
+//first it generates the world per chunks
+for (let y=0; y<worldSize.height; y++) {
+	perChunkWorld[y] = [];
+	for (let x=0; x<worldSize.height; x++) {
+		perChunkWorld[y][x] = Math.round(Math.random()*(biomeTypes.length-1));
+	}
+}
+
+let mapGroundList = [];
+
+//after, it turns each chunk into a full map
+for (let y=0; y<worldSize.height; y++) {
+	for (let i=0; i<8; i++){
+		mapGroundList[(y*8)+i] = [];
+		//it starts creating 8 spaces in Y part 
+	}
+	//first, it creates the y part
+	for (let x=0; x<worldSize.width; x++) {
+		for (let i=0; i<8; i++) {
+			for (let j=0; j<10; j++) {
+				mapGroundList[(y*8)+i][(x*10)+j] = biomeTiles[perChunkWorld[y][x]][0];
+				//it will create 10 X spaces in each 8 Y spaces
+			}
+		}
+	}
+}
+
+//make the world better
+
+for (let y=0; y<worldSize.height; y++) {
+	for (let x=0; x<worldSize.width; x++) {
+		if (x!=0 && y!=0) {
+			switch(mapGroundList[y][x]) {
+				case 0:
+					if (mapGroundList[y][x+1] && mapGroundList[y][x+1]!=mapGroundList[y][x]) {
+						mapGroundList[y][x]=
+					}
+				case 3:
+					
+				case 6:
+					
+				case 9:
+					
+			}
+		}
+	}
+}
+/* 
+mapGroundList = [
     [0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 ,6 , 7, 7, 7, 7, 7, 7, 7, 7, 8],
     [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
     [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
@@ -105,7 +189,7 @@ let mapGroundList = [
     [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
     [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
     [35, 36, 36, 36, 36, 36, 36, 36, 36, 37,41,42,42,42,42,42,42,42,42,43]
-]; //a pretty basic map to test tiles position
+]; //a pretty basic map to test tiles position */
 
 for (let y=0; y<mapGroundList.length; y++) { //the world is better now
 	for (let x=0; x<mapGroundList[0].length; x++) {
@@ -296,17 +380,32 @@ document.addEventListener("keyup", function(event) {
 	keys[event.key]=false;
 });
 
-let mouseX = 0;
-let mouseY = 0;
-
 document.addEventListener("mousemove", function(event) {
- mouseX = event.clientX - 8;
- mouseY = event.clientY - 8;
+	mouse.x = event.clientX - 8;
+	mouse.y = event.clientY - 8;
 });
 
-document.addEventListener('click', () => {
- mouseClick = true;
+document.addEventListener("touchmove", function(event) {
+	mouse.x = event.clientX - 8;
+	mouse.y = event.clientY - 8;
 });
+
+document.addEventListener('mousedown', () => {
+	mouse.down = true
+});
+
+document.addEventListener('mouseup', () => {
+	mouse.down = false
+});
+
+document.addEventListener('touchstart', () => {
+	mouse.down = true
+});
+
+document.addEventListener('touchend', () => {
+	mouse.down = false
+});
+
 
 let lastTime = performance.now();
 let fps = 0;
@@ -416,82 +515,40 @@ exportButton.textContent = "Export Objects Map List";
 exportButton.onclick = exportObjMap;
 document.body.appendChild(exportButton);
 
-const rightButton = document.createElement("button");
-rightButton.textContent = "Right Button";
-
-rightButton.addEventListener("touchstart", () => {
-	mobileCntrl.right = true;
-});
-
-rightButton.addEventListener("touchend", () => {
-	mobileCntrl.right = false;
-});
-
-const leftButton = document.createElement("button");
-leftButton.textContent = "Left Button";
-
-leftButton.addEventListener("touchstart", () => {
-	mobileCntrl.left = true;
-});
-
-leftButton.addEventListener("touchend", () => {
-	mobileCntrl.left = false;
-});
-
-const upButton = document.createElement("button");
-upButton.textContent = "Up Button";
-
-upButton.addEventListener("touchstart", () => {
-	mobileCntrl.up = true;
-});
-
-upButton.addEventListener("touchend", () => {
-	mobileCntrl.up = false;
-});
-
-const downButton = document.createElement("button");
-downButton.textContent = "Down Button";
-
-downButton.addEventListener("touchstart", () => {
-	mobileCntrl.down = true;
-});
-
-downButton.addEventListener("touchend", () => {
-	mobileCntrl.down = false;
-});
-
-document.body.appendChild(leftButton);
-document.body.appendChild(rightButton);
-document.body.appendChild(downButton);
-document.body.appendChild(upButton);
-
 function _update(deltaTime) {
 	let deltaX = 0;
 	let deltaY = 0;
+	
+	if(keys["d"]) {controls.right=true} else {controls.right=false};
+	if(keys["s"]) {controls.down=true} else {controls.down=false};
+	if(keys["w"]) {controls.up=true} else {controls.up=false};
+	if(keys["a"]) {controls.left=true} else {controls.left=false};
+	
+	
 	if (!transiting) {
-		if(keys["d"] || mobileCntrl.right) {moveX=-1} else if (keys["a"] || mobileCntrl.left) {moveX=1} else {moveX=0};
-		if(keys["w"] || mobileCntrl.up) {moveY=-1} else if (keys["s"] || mobileCntrl.down) {moveY=1} else {moveY=0};
-		if(keys["d"] || mobileCntrl.right) {
+		if(controls.right ) {moveX=-1} else if (controls.left ) {moveX=1} else {moveX=0};
+		if(controls.up ) {moveY=-1} else if (controls.down ) {moveY=1} else {moveY=0};
+		if(controls.right ) {
 			deltaX+=plyspeed;
-			if (keys["s"] || mobileCntrl.down!=true && keys["w"] || mobileCntrl.up!=true && keys["a"] || mobileCntrl.left!=true) {
+			if (controls.down !=true && controls.up !=true && controls.left !=true) {
 				playerProp.direction = 1;
 			}
 		}
-		if(keys["a"] || mobileCntrl.left) {
+		if(controls.left ) {
 			deltaX-=plyspeed;
-			if (keys["s"] || mobileCntrl.down!=true && keys["w"] || mobileCntrl.up!=true && keys["d"] || mobileCntrl.right!=true) {
+			if (controls.down !=true && controls.up !=true && controls.right !=true) {
 				playerProp.direction = 3;
 			}
 		}
-		if(keys["w"] || mobileCntrl.up) {
+		if(controls.up ) {
 			deltaY-=plyspeed;
-			if (keys["s"] || mobileCntrl.down!=true && keys["a"] || mobileCntrl.left!=true && keys["d"] || mobileCntrl.right!=true) {
+			if (controls.down !=true && controls.left !=true && controls.right !=true) {
 				playerProp.direction = 2;
 			}
 		}
-		if(keys["s"] || mobileCntrl.down) {
+		if(controls.down ) {
 			deltaY+=plyspeed;
-			if (keys["w"] || mobileCntrl.up!=true && keys["a"] || mobileCntrl.left!=true && keys["d"] || mobileCntrl.right!=true) {
+			if (controls.up !=true && controls.left !=true && controls.right !=true) {
 				playerProp.direction = 0;
 			}
 		}
@@ -582,7 +639,7 @@ function _update(deltaTime) {
 	playerInListYPos=Math.round((playerProp.y/sprSize)+camera.offsetY*8);
 	//Player map change
 	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>512 && transiting==false) {
-		if (((camera.offsetY+1)*8)*2<=mapGroundList.length) {
+		if (((camera.offsetY)*8)*2<=mapGroundList.length) {
 			transiting = true;
 			transSide.down = true;
 		}
@@ -592,7 +649,7 @@ function _update(deltaTime) {
 			transSide.up = true;
 		}
 	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>640 && transiting==false) {
-		if (((camera.offsetX+1)*8)*2<=mapGroundList[0].length) {
+		if (((camera.offsetX)*8)*2<=mapGroundList[0].length) {
 			transiting = true;
 			transSide.right = true;
 		}
@@ -612,6 +669,10 @@ function _update(deltaTime) {
 	
 	if (rupees>999) {
 		rupees=999;
+	}
+	
+	if (linkLife.life>linkLife.maxLife) {
+		linkLife.life=linkLife.maxLife
 	}
 }
 
@@ -649,6 +710,42 @@ function drawHud() {
 				sprSize/2
 			);
 		}
+		//The hearts that are in the hud
+		
+		let xDraw = 0;
+		let yDraw = 0;
+		let fixLife = false;
+		if (!Number.isInteger(linkLife.life)) {
+			fixLife = true;
+		}
+		let mainLife = Math.floor(linkLife.life);
+		for (let i=0; i<linkLife.maxLife; i++) {
+			xDraw = (81*(sprSize/basesprSize))+((sprSize/2)*3)+(i*(8*(sprSize/basesprSize)));
+			yDraw=512+((sprSize/2)*(Math.floor(i/7)));
+			ctx.drawImage(hudImg, (basesprSize/2), basesprSize*2, basesprSize/2, basesprSize/2, xDraw, yDraw, sprSize/2, sprSize/2);
+		}
+		if (mainLife==0) {
+			for (let i=0; i<1; i++) { //repeat for me
+				xDraw = (81*(sprSize/basesprSize))+((sprSize/2)*3)+(i*(8*(sprSize/basesprSize)));
+				yDraw=512+((sprSize/2)*(Math.floor(i/7)));
+				ctx.drawImage(hudImg, (basesprSize/2)*2, basesprSize*2, basesprSize/2, basesprSize/2, xDraw, yDraw, sprSize/2, sprSize/2);
+			}
+		} else {
+			for (let i=0; i<mainLife; i++) { //repeat for me
+				xDraw = (81*(sprSize/basesprSize))+((sprSize/2)*3)+(i*(8*(sprSize/basesprSize)));
+				yDraw=512+((sprSize/2)*(Math.floor(i/7)));
+				ctx.drawImage(hudImg, (basesprSize/2)*3, basesprSize*2, basesprSize/2, basesprSize/2, xDraw, yDraw, sprSize/2, sprSize/2);
+				if (fixLife) {
+					if (i+1==mainLife) {
+						i++;
+						xDraw = (81*(sprSize/basesprSize))+((sprSize/2)*3)+(i*(8*(sprSize/basesprSize)));
+						yDraw=512+((sprSize/2)*(Math.floor(i/7)));
+						ctx.drawImage(hudImg, (basesprSize/2)*2, basesprSize*2, basesprSize/2, basesprSize/2, xDraw, yDraw, sprSize/2, sprSize/2);
+					}
+				}
+			}
+		}
+		
 	}
 }
 
@@ -660,7 +757,8 @@ function drawScene(){
 		let playerDraw = false;
         for (let y = 0; y < mapGroundList.length; y++) { //optomize the map draw, his length is too big to be drawed entirelly
 			//if((camera.offsetY*8)*2<=mapGroundList.length) {
-				for (let x = 0; x < mapGroundList[y].length; x++) {
+				if (!devMode.on || devMode.on && !devMode.hideGrnd) {
+					for (let x = 0; x < mapGroundList[y].length; x++) {
 						let tile = mapGroundList[y][x];
 						tilesetImgW = (tileset[tileset2use].naturalWidth/16);
 						tilesetImgH = (tileset[tileset2use].naturalHeight/16);
@@ -696,37 +794,42 @@ function drawScene(){
 							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
 							ctx.globalAlpha = 1;
 						} */
+					}
 				}
-				for (let x = 0; x < mapObjList[y].length; x++) {
-						let tile = mapObjList[y][x];
-						tilesetImgW = (tileset["overworld_obj"].naturalWidth/16);
-						tilesetImgH = (tileset["overworld_obj"].naturalHeight/16);
-						imgX = tile % 16; // Compute horizontal frame
-						imgY = Math.floor(tile / 16); // Compute vertical frame
-						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
-							/* if (tile!=256) {
-								if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<playerProp.sclyP+playerProp.y+(playerProp.scly/2)) {
-									drawPlayer();
-									playerDraw=true;
+				if (!devMode.on || devMode.on && !devMode.hideObj) {
+					for (let x = 0; x < mapObjList[y].length; x++) {
+							let tile = mapObjList[y][x];
+							tilesetImgW = (tileset["overworld_obj"].naturalWidth/16);
+							tilesetImgH = (tileset["overworld_obj"].naturalHeight/16);
+							imgX = tile % 16; // Compute horizontal frame
+							imgY = Math.floor(tile / 16); // Compute vertical frame
+							if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
+								/* if (tile!=256) {
+									if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<playerProp.sclyP+playerProp.y+(playerProp.scly/2)) {
+										drawPlayer();
+										playerDraw=true;
+									}
+								} */
+								//if (tile!=256) {
+									ctx.drawImage(
+									tileset["overworld_obj"],
+									imgX * basesprSize,
+									imgY * basesprSize,
+									basesprSize,
+									basesprSize,
+									(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
+									(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
+									sprSize, sprSize);
+								//}
+							}
+							if (devMode.on && devMode.linkColl) {
+								if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+									ctx.globalAlpha = 0.5;
+									ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
+									ctx.globalAlpha = 1;
 								}
-							} */
-							//if (tile!=256) {
-								ctx.drawImage(
-								tileset["overworld_obj"],
-								imgX * basesprSize,
-								imgY * basesprSize,
-								basesprSize,
-								basesprSize,
-								(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
-								(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
-								sprSize, sprSize);
-							//}
-						}
-						if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
-							ctx.globalAlpha = 0.5;
-							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
-							ctx.globalAlpha = 1;
-						}
+							}
+					}
 				}
 				if (playerDraw==false) {
 					drawPlayer();
@@ -752,10 +855,13 @@ function _draw() {
     ctx.fillRect(0, 512, canvas.width, canvas.height);
     ctx.fillStyle = "#000000";
 	drawHud();
-    ctx.fillText(`Player X: ${playerProp.x} Player Y: ${playerProp.y}`, 0, 520);
-	ctx.fillText(`Player ScaleX point: ${playerProp.sclx+playerProp.x} Player ScaleY point: ${playerProp.scly+playerProp.y}`, 0, 530);
-    ctx.fillText(`Player Current Animation Frame: ${playerProp.frame}`, 0, 540);
-    ctx.fillText(`Player Direction: ${playerProp.direction}`, 0, 550);
-	ctx.fillText(`Player In List X: ${playerInListXPos} Y: ${playerInListYPos}`, 0, 560);
-	ctx.fillText(`Current Tile Animation Frame: ${tileAnim.frame}`, 0, 570);
+	if (devMode.on && devMode.debugTxt) {
+		ctx.fillText(`Player X: ${playerProp.x} Player Y: ${playerProp.y}`, 0, 520);
+		ctx.fillText(`Player ScaleX point: ${playerProp.sclx+playerProp.x} Player ScaleY point: ${playerProp.scly+playerProp.y}`, 0, 530);
+		ctx.fillText(`Player Current Animation Frame: ${playerProp.frame}`, 0, 540);
+		ctx.fillText(`Player Direction: ${playerProp.direction}`, 0, 550);
+		ctx.fillText(`Player In List X: ${playerInListXPos} Y: ${playerInListYPos}`, 0, 560);
+		ctx.fillText(`Current Tile Animation Frame: ${tileAnim.frame}`, 0, 570);
+		ctx.fillText(`Mouse X: ${mouse.x} Y: ${mouse.y} down: ${mouse.down}`, 0, 20);
+	}
 }
