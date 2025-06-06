@@ -57,8 +57,8 @@ let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
 let worldSize = {
-	width : 4,
-	height : 4,
+	width : 2,
+	height : 2,
 }
 let chunk = 8; //dont change it
 
@@ -129,6 +129,7 @@ for (let y=0; y<worldSize.height; y++) {
 	perChunkWorld[y] = [];
 	for (let x=0; x<worldSize.height; x++) {
 		perChunkWorld[y][x] = Math.round(Math.random()*(biomeTypes.length-1));
+		//perChunkWorld[y][x] = 0;
 	}
 }
 
@@ -153,26 +154,74 @@ for (let y=0; y<worldSize.height; y++) {
 
 //make the world better
 
-for (let y=0; y<worldSize.height; y++) {
-	for (let x=0; x<worldSize.width; x++) {
-		if (x!=0 && y!=0) {
-			switch(mapGroundList[y][x]) {
-				case 0:
-					if (mapGroundList[y][x+1] && mapGroundList[y][x+1]!=mapGroundList[y][x]) {
-						mapGroundList[y][x]=
+function checkGroundAppear() {
+	for (let y=0; y<mapGroundList.length; y++) {
+		for (let x=0; x<mapGroundList[0].length; x++) {
+			let currTile = mapGroundList[y][x];
+			if (1==1) {
+				
+				let validTiles = new Set(biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]]);
+				let tileright, tiledown, tileup, tileleft = "no";
+				
+				if (mapGroundList[y][x+1]!==undefined) {
+					tileright = mapGroundList[y][x+1];
+				}
+				if (y+1!=mapGroundList.length) {
+					tiledown = mapGroundList[y+1][x];
+				}
+				if (y!=0 && mapGroundList[y-1][x]!==undefined) {
+					tileup = mapGroundList[y-1][x];
+				}
+				if (mapGroundList[y][x-1]!==undefined) {
+					tileleft = mapGroundList[y][x-1];
+				}
+				
+				if (validTiles.has(tileright)) {
+					if (validTiles.has(tileleft)) {
+						if (validTiles.has(tileup)) {
+							if (validTiles.has(tiledown)) {
+								//mapGroundList[y][x]==biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][4];
+								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][4];
+							} else {
+								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][7];
+							}
+						} else {
+							if (validTiles.has(tiledown)) {
+								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][1];
+							}
+						}
+					} else {
+						if (validTiles.has(tileup)) {
+							if (validTiles.has(tiledown)) {
+								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][3];
+							} else {
+								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][6];
+							}
+						} else {
+							mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][0];
+						}
 					}
-				case 3:
-					
-				case 6:
-					
-				case 9:
-					
+				} else {
+					if (validTiles.has(tileleft)) {
+						if (validTiles.has(tileup)) {
+							if (validTiles.has(tiledown)) {
+								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][5];
+							} else {
+								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][8];
+							}
+						} else {
+							mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][2];
+						}
+					}
+				}
 			}
 		}
 	}
 }
-/* 
-mapGroundList = [
+
+checkGroundAppear();
+
+/* mapGroundList = [
     [0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 ,6 , 7, 7, 7, 7, 7, 7, 7, 7, 8],
     [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
     [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
@@ -191,6 +240,7 @@ mapGroundList = [
     [35, 36, 36, 36, 36, 36, 36, 36, 36, 37,41,42,42,42,42,42,42,42,42,43]
 ]; //a pretty basic map to test tiles position */
 
+//creates flowers in the ground
 for (let y=0; y<mapGroundList.length; y++) { //the world is better now
 	for (let x=0; x<mapGroundList[0].length; x++) {
 		let detailsOnGround = Math.round(Math.random()*4);
@@ -224,88 +274,94 @@ let tileset = {
 	overworld_obj : new Image()
 };
 
-for (let y=0; y<mapGroundList.length; y++) { //creating space on the object list
-	mapObjList[y] = [];
-	for (let x=0; x<mapGroundList[0].length; x++) {
-		mapObjList[y][x] = 256;
+function generateWorldObj() {
+	mapObjList = [];
+	
+	for (let y=0; y<mapGroundList.length; y++) { //creating space on the object list
+		mapObjList[y] = [];
+		for (let x=0; x<mapGroundList[0].length; x++) {
+			mapObjList[y][x] = 256;
+		}
 	}
-}
 
-for (let y=mapObjList.length-1; y>0; y--) { //object random generation
-	for (let x=mapObjList[0].length-1; x>0; x--) {
-		let tree = Math.round(Math.random()*objTax.tree);
-		let bush = Math.round(Math.random()*objTax.bush);
-		let rock = Math.round(Math.random()*objTax.rock);
+	for (let y=mapObjList.length-1; y>0; y--) { //object random generation
+		for (let x=mapObjList[0].length-1; x>0; x--) {
+			let tree = Math.round(Math.random()*objTax.tree);
+			let bush = Math.round(Math.random()*objTax.bush);
+			let rock = Math.round(Math.random()*objTax.rock);
 
-		//console.log(tree);
-		if (tree==1) {
-			if (x>1 && y>1) {
-				if (y!=(mapObjList.length)/2) {
-					if (x!=mapObjList[0].length/2) {
-						if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
-							if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
-							if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
-								mapObjList[y][x]=37;
-							} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
-								mapObjList[y][x]=2;
-							} else {
-								mapObjList[y][x]=21;
-							}
-							if (mapObjList[y][x-1]==5) {
-								mapObjList[y][x-1]=3;
-							} else if (mapObjList[y][x-1]==4) {
-								mapObjList[y][x-1]=36;
-							} else {
-								mapObjList[y][x-1]=20;
-							}
-							mapObjList[y-1][x]=5;
-							mapObjList[y-1][x-1]=4;
-							//break;
-						}
-						}
-					}
-				} else {
-					/* console.log("Trees shouldn't spawn here")
-					console.log(x);
-					console.log(y); */
-				}
-			}
-		}
-		if (bush==1) {
-			if (x>1 && y>1) {
-				if (mapObjList[y][x]==256) {
-					for (let i=0; i<biomeTiles.length; i++) {
-						for (let biom=0; biom<biomeTiles[i].length; biom++) {
-							if (mapGroundList[y][x]==biomeTiles[i][biom]) {
-								mapObjList[y][x]=16+i;
-							}
-						}
-					}
-					alreadyBush=true;
-				}
-			}
-		}
-		if (rock==1) {
-			if (x>1 && y>1) {
-				if (mapObjList[y][x]==256) {
-					for (let i=0; i<biomeTiles.length; i++) {
-						for (let biom=0; biom<biomeTiles[i].length; biom++) {
-							if (mapGroundList[y][x]==biomeTiles[i][biom]) {
-								if (i==1) {
-									mapObjList[y][x]=32;
+			//console.log(tree);
+			if (tree==1) {
+				if (x>1 && y>1) {
+					if (y!=8*Math.floor(y/8)) {
+						if (x!=10*Math.floor(x/10)) {
+							if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
+								if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
+								if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
+									mapObjList[y][x]=37;
+								} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
+									mapObjList[y][x]=2;
 								} else {
-									mapObjList[y][x]=32+i;
+									mapObjList[y][x]=21;
+								}
+								if (mapObjList[y][x-1]==5) {
+									mapObjList[y][x-1]=3;
+								} else if (mapObjList[y][x-1]==4) {
+									mapObjList[y][x-1]=36;
+								} else {
+									mapObjList[y][x-1]=20;
+								}
+								mapObjList[y-1][x]=5;
+								mapObjList[y-1][x-1]=4;
+								//break;
+							}
+							}
+						}
+					} else {
+						/* console.log("Trees shouldn't spawn here")
+						console.log(x);
+						console.log(y); */
+					}
+				}
+			}
+			if (bush==1) {
+				if (x>1 && y>1) {
+					if (mapObjList[y][x]==256) {
+						for (let i=0; i<biomeTiles.length; i++) {
+							for (let biom=0; biom<biomeTiles[i].length; biom++) {
+								if (mapGroundList[y][x]==biomeTiles[i][biom]) {
+									mapObjList[y][x]=16+i;
 								}
 							}
 						}
+						alreadyBush=true;
 					}
-					alreadyRock=true;
+				}
+			}
+			if (rock==1) {
+				if (x>1 && y>1) {
+					if (mapObjList[y][x]==256) {
+						for (let i=0; i<biomeTiles.length; i++) {
+							for (let biom=0; biom<biomeTiles[i].length; biom++) {
+								if (mapGroundList[y][x]==biomeTiles[i][biom]) {
+									if (i==1) {
+										mapObjList[y][x]=32;
+									} else {
+										mapObjList[y][x]=32+i;
+									}
+								}
+							}
+						}
+						alreadyRock=true;
+					}
 				}
 			}
 		}
+		//break;
 	}
-	//break;
 }
+
+generateWorldObj();
 
 //type of tileset
 tileset["dungeons"].src = "assets/tileset/dungeons/dungeons_t.png";
@@ -759,45 +815,50 @@ function drawScene(){
 			//if((camera.offsetY*8)*2<=mapGroundList.length) {
 				if (!devMode.on || devMode.on && !devMode.hideGrnd) {
 					for (let x = 0; x < mapGroundList[y].length; x++) {
-						let tile = mapGroundList[y][x];
-						tilesetImgW = (tileset[tileset2use].naturalWidth/16);
-						tilesetImgH = (tileset[tileset2use].naturalHeight/16);
-						imgX = tile % tilesetImgW; // Compute horizontal frame
-						imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
-						if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
-							if (tile==48 || tile==54 || tile==51 || tile==57) {
-								switch(tileAnim.frame) {
-									case 1:
-										imgX+=1;
-										break;
-									case 2:
-										imgX+=2;
-										break;
-									case 3:
-										imgY+=1;
-										break;
-								}	
+						if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<768 || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<896) {
+							let tile = mapGroundList[y][x];
+							tilesetImgW = (tileset[tileset2use].naturalWidth/16);
+							tilesetImgH = (tileset[tileset2use].naturalHeight/16);
+							imgX = tile % tilesetImgW; // Compute horizontal frame
+							imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
+							if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
+								if (tile==48 || tile==54 || tile==51 || tile==57) {
+									switch(tileAnim.frame) {
+										case 1:
+											imgX+=1;
+											break;
+										case 2:
+											imgX+=2;
+											break;
+										case 3:
+											imgY+=1;
+											break;
+									}	
+								}
+								
+								ctx.drawImage(
+									tileset[tileset2use],
+									imgX * basesprSize,
+									imgY * basesprSize,
+									basesprSize,
+									basesprSize,
+									(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
+									(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
+									sprSize, sprSize);
 							}
-							
-							ctx.drawImage(
-								tileset[tileset2use],
-								imgX * basesprSize,
-								imgY * basesprSize,
-								basesprSize,
-								basesprSize,
-								(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
-								(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
-								sprSize, sprSize);
+							/* if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+								ctx.globalAlpha = 0.5;
+								ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
+								ctx.globalAlpha = 1;
+							} */
+						} else {
+							break;
 						}
-						/* if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
-							ctx.globalAlpha = 0.5;
-							ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
-							ctx.globalAlpha = 1;
-						} */
 					}
 				}
 				if (!devMode.on || devMode.on && !devMode.hideObj) {
 					for (let x = 0; x < mapObjList[y].length; x++) {
+						if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<768 || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<896) {
 							let tile = mapObjList[y][x];
 							tilesetImgW = (tileset["overworld_obj"].naturalWidth/16);
 							tilesetImgH = (tileset["overworld_obj"].naturalHeight/16);
@@ -829,6 +890,9 @@ function drawScene(){
 									ctx.globalAlpha = 1;
 								}
 							}
+						} else {
+							break;
+						}
 					}
 				}
 				if (playerDraw==false) {
@@ -854,7 +918,9 @@ function _draw() {
 	ctx.fillStyle = "#FFFF8C";
     ctx.fillRect(0, 512, canvas.width, canvas.height);
     ctx.fillStyle = "#000000";
-	drawHud();
+	if (!devMode.on || devMode.on && !devMode.hideHud) {
+		drawHud();
+	}
 	if (devMode.on && devMode.debugTxt) {
 		ctx.fillText(`Player X: ${playerProp.x} Player Y: ${playerProp.y}`, 0, 520);
 		ctx.fillText(`Player ScaleX point: ${playerProp.sclx+playerProp.x} Player ScaleY point: ${playerProp.scly+playerProp.y}`, 0, 530);
