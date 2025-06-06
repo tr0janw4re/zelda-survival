@@ -43,7 +43,8 @@ let biomeTiles = [
 	[0, 1, 2, 16, 17, 18, 32, 33, 34],
 	[3, 4, 5, 19, 20, 21, 35, 36, 37],
 	[6, 7, 8, 22, 23, 24, 38, 39, 40],
-	[9, 10, 11, 25, 26, 27, 41, 42, 43]
+	[9, 10, 11, 25, 26, 27, 41, 42, 43],
+	[12]
 ];
 
 let specialTiles = [
@@ -57,16 +58,17 @@ let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
 let worldSize = {
-	width : 2,
-	height : 2,
+	width : 16,
+	height : 16,
 }
 let chunk = 8; //dont change it
 
 let biomeTypes = [
 	"Grass Field",
+	"Sepian Mounts",
 	"Dark Forest",
-	"Sepian Mount",
-	"Mytical Forest"
+	"Mytical Forest",
+	"Desert of Wastes"
 ]
 
 let rupees = 123;
@@ -158,8 +160,10 @@ function checkGroundAppear() {
 	for (let y=0; y<mapGroundList.length; y++) {
 		for (let x=0; x<mapGroundList[0].length; x++) {
 			let currTile = mapGroundList[y][x];
+			if (perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]==4) {
+				continue;
+			}
 			if (1==1) {
-				
 				let validTiles = new Set(biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]]);
 				let tileright, tiledown, tileup, tileleft = "no";
 				
@@ -295,26 +299,50 @@ function generateWorldObj() {
 				if (x>1 && y>1) {
 					if (y!=8*Math.floor(y/8)) {
 						if (x!=10*Math.floor(x/10)) {
-							if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
-								if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
-								if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
-									mapObjList[y][x]=37;
-								} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
-									mapObjList[y][x]=2;
-								} else {
-									mapObjList[y][x]=21;
+							if (perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]==2) {
+								if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
+									if (mapObjList[y][x]!=30 || mapObjList[y][x]!=31) {
+										if (mapObjList[y][x]==15 || mapObjList[y][x]==13) {
+											mapObjList[y][x]=47;
+										} else if (mapObjList[y][x]==14 || mapObjList[y][x]==12) {
+											mapObjList[y][x]=12;
+										} else {
+											mapObjList[y][x]=31;
+										}
+										if (mapObjList[y][x-1]==15) {
+											mapObjList[y][x-1]=13;
+										} else if (mapObjList[y][x-1]==14) {
+											mapObjList[y][x-1]=46;
+										} else {
+											mapObjList[y][x-1]=30;
+										}
+										mapObjList[y-1][x]=15;
+										mapObjList[y-1][x-1]=14;
+										//break;
+									}
 								}
-								if (mapObjList[y][x-1]==5) {
-									mapObjList[y][x-1]=3;
-								} else if (mapObjList[y][x-1]==4) {
-									mapObjList[y][x-1]=36;
-								} else {
-									mapObjList[y][x-1]=20;
+							} else {
+								if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
+									if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
+										if (mapObjList[y][x]==5 || mapObjList[y][x]==3) {
+											mapObjList[y][x]=37;
+										} else if (mapObjList[y][x]==4 || mapObjList[y][x]==2) {
+											mapObjList[y][x]=2;
+										} else {
+											mapObjList[y][x]=21;
+										}
+										if (mapObjList[y][x-1]==5) {
+											mapObjList[y][x-1]=3;
+										} else if (mapObjList[y][x-1]==4) {
+											mapObjList[y][x-1]=36;
+										} else {
+											mapObjList[y][x-1]=20;
+										}
+										mapObjList[y-1][x]=5;
+										mapObjList[y-1][x-1]=4;
+										//break;
+									}
 								}
-								mapObjList[y-1][x]=5;
-								mapObjList[y-1][x-1]=4;
-								//break;
-							}
 							}
 						}
 					} else {
@@ -329,8 +357,10 @@ function generateWorldObj() {
 					if (mapObjList[y][x]==256) {
 						for (let i=0; i<biomeTiles.length; i++) {
 							for (let biom=0; biom<biomeTiles[i].length; biom++) {
-								if (mapGroundList[y][x]==biomeTiles[i][biom]) {
-									mapObjList[y][x]=16+i;
+								if(biomeTypes[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]]!=biomeTypes[4]) {
+									if (mapGroundList[y][x]==biomeTiles[i][biom]) {
+										mapObjList[y][x]=16+i;
+									}
 								}
 							}
 						}
@@ -344,10 +374,12 @@ function generateWorldObj() {
 						for (let i=0; i<biomeTiles.length; i++) {
 							for (let biom=0; biom<biomeTiles[i].length; biom++) {
 								if (mapGroundList[y][x]==biomeTiles[i][biom]) {
-									if (i==1) {
-										mapObjList[y][x]=32;
-									} else {
-										mapObjList[y][x]=32+i;
+									if (biomeTypes[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]]!=biomeTypes[4]) {
+										if (i==1) {
+											mapObjList[y][x]=32;
+										} else {
+											mapObjList[y][x]=32+i;
+										}
 									}
 								}
 							}
@@ -694,17 +726,15 @@ function _update(deltaTime) {
 	playerInListXPos=Math.round((playerProp.x/sprSize)+camera.offsetX*10);
 	playerInListYPos=Math.round((playerProp.y/sprSize)+camera.offsetY*8);
 	//Player map change
-	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>512 && transiting==false) {
-		if (((camera.offsetY)*8)*2<=mapGroundList.length) {
-			transiting = true;
-			transSide.down = true;
-		}
+	if (playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>512 && transiting==false && camera.offsetY<perChunkWorld.length-1) {
+		transiting = true;
+		transSide.down = true;
 	}if (playerProp.y+((sprSize/basesprSize)*4)<0 && transiting==false) {
 		if (camera.offsetY>0) {
 			transiting = true;
 			transSide.up = true;
 		}
-	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>640 && transiting==false) {
+	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>640 && transiting==false && camera.offsetX<perChunkWorld[0].length-1) {
 		if (((camera.offsetX)*8)*2<=mapGroundList[0].length) {
 			transiting = true;
 			transSide.right = true;
@@ -929,5 +959,6 @@ function _draw() {
 		ctx.fillText(`Player In List X: ${playerInListXPos} Y: ${playerInListYPos}`, 0, 560);
 		ctx.fillText(`Current Tile Animation Frame: ${tileAnim.frame}`, 0, 570);
 		ctx.fillText(`Mouse X: ${mouse.x} Y: ${mouse.y} down: ${mouse.down}`, 0, 20);
+		ctx.fillText(`Current Biome: ${biomeTypes[perChunkWorld[camera.offsetY][camera.offsetX]]}`,0,30);
 	}
 }
