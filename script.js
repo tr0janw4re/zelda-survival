@@ -58,8 +58,8 @@ let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
 let worldSize = {
-	width : 16,
-	height : 16,
+	width : 256,
+	height : 256,
 }
 let chunk = 8; //dont change it
 
@@ -113,6 +113,7 @@ let mouse = {
 let devMode = {
 	on : true,
 	debugTxt : true,
+	showlinkColl : false,
 	linkColl : true,
 	hideObj : false,
 	hideGrnd : false,
@@ -269,6 +270,7 @@ for (let y=0; y<mapGroundList.length; y++) { //the world is better now
 
 console.log(`Map Y List ${mapGroundList.length} per block: 8`);
 console.log(`Map X List ${mapGroundList[0].length} per block: 10`)
+console.log(`${worldSize.width} Vertical Chunks and ${worldSize.height} Horizontal Chunks`)
 
 let mapObjList = []; //the most inneficient way to add objects to your world
 
@@ -531,20 +533,28 @@ function checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY) {
 
 function checkCollisionWithObj(obj) {
 	let dontcol = false;
-	for(let y=0; y<mapObjList.length; y++) {
-		for (let x=0; x<mapObjList[0].length; x++) {
+	let cameraOffY = camera.offsetY - 1;
+	let cameraOffX = camera.offsetX - 1;
+	for(let y=0; y<8*3; y++) {
+		if(y+(cameraOffY*8)<0 || y+(cameraOffY*8)>mapObjList.length) {
+			continue;
+		}
+		for (let x=0; x<10*3; x++) {
+			if(x+(cameraOffX*10)<0 || x+(cameraOffX*10)>mapGroundList[y].length) {
+				continue;
+			}
 			dontcol=false;
-			const tile = mapObjList[y][x];
+			const tile = mapObjList[y+(cameraOffY*8)][x+(cameraOffX*10)];
 			
 			for (i=0; i<specialTiles[0].length; i++) {
-				if (mapObjList[y][x]==specialTiles[0][i]) {
+				if (mapObjList[y+(cameraOffY*8)][x+(cameraOffX*10)]==specialTiles[0][i]) {
 					dontcol=true;
 				}
 			}
 			
 			if (dontcol==false) {
-				const tileX = (x*sprSize) + camera.x - (camera.offsetX * (10*sprSize));
-				const tileY = (y*sprSize) + camera.y - (camera.offsetY * (8*sprSize));
+				const tileX = (x*sprSize) + camera.x-(80*8);
+				const tileY = (y*sprSize) + camera.y-(64*8);
 			
 				if (checkCollisionInTiles(obj, tileX, sprSize, tileY, sprSize)) {
 					return true;
@@ -607,6 +617,10 @@ function _update(deltaTime) {
 	let deltaX = 0;
 	let deltaY = 0;
 	
+	if (sprSize!=64 && devMode.on) {
+		devMode.linkColl = false;
+	}
+	
 	if(keys["d"]) {controls.right=true} else {controls.right=false};
 	if(keys["s"]) {controls.down=true} else {controls.down=false};
 	if(keys["w"]) {controls.up=true} else {controls.up=false};
@@ -641,23 +655,21 @@ function _update(deltaTime) {
 			}
 		}
 		if(keys["j"]) {
-			//if (mapObjList[playerInListYPos][playerInListXPos]==256) {
-			//for (let i=0; i<biomeTiles)
-			//if (mapGroundList[playerInListXPos][playerInListYPos])
-				mapObjList[playerInListYPos][playerInListXPos] = selectedBlock;
-			//}
+			mapObjList[playerInListYPos][playerInListXPos] = selectedBlock;
 		}
 		
 		playerProp.x+=deltaX;
-		if (checkCollisionWithObj(playerProp)) {
-			playerProp.x -= deltaX;
+		if (devMode.on && devMode.linkColl || devMode.on==false) {
+			if (checkCollisionWithObj(playerProp)) {
+				playerProp.x -= deltaX;
+			}
 		}
-		
 		playerProp.y+=deltaY;
-		if (checkCollisionWithObj(playerProp)) {
-			playerProp.y-=deltaY;
-		}
-		
+		if (devMode.on && devMode.linkColl || devMode.on==false) {
+			if (checkCollisionWithObj(playerProp)) {
+				playerProp.y-=deltaY;
+			}
+		}		
 		
 		//animation code is here
 		if (moveX!==0 || moveY!==0) {
@@ -841,17 +853,25 @@ function drawScene(){
 		let imgX = 0;
 		let imgY = 0;
 		let playerDraw = false;
-        for (let y = 0; y < mapGroundList.length; y++) { //optomize the map draw, his length is too big to be drawed entirelly
+		let cameraOffY = camera.offsetY - 1;
+		let cameraOffX = camera.offsetX - 1;
+        for (let y = 0; y < 8*3; y++) { //optomize the map draw, his length is too big to be drawed entirelly (okay, lets do it)
 			//if((camera.offsetY*8)*2<=mapGroundList.length) {
+				if(y+(cameraOffY*8)<0 || y+(cameraOffY*8)>mapGroundList.length) {
+					continue;
+				}
 				if (!devMode.on || devMode.on && !devMode.hideGrnd) {
-					for (let x = 0; x < mapGroundList[y].length; x++) {
-						if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<768 || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<896) {
-							let tile = mapGroundList[y][x];
+					for (let x = 0; x < 10*3; x++) {
+						//if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<768 || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<896) {
+							if(x+(cameraOffX*10)<0 || x+(cameraOffX*10)>mapGroundList[y].length) {
+								continue;
+							}
+							let tile = mapGroundList[y+(cameraOffY*8)][x+(cameraOffX*10)];
 							tilesetImgW = (tileset[tileset2use].naturalWidth/16);
 							tilesetImgH = (tileset[tileset2use].naturalHeight/16);
 							imgX = tile % tilesetImgW; // Compute horizontal frame
 							imgY = Math.floor(tile / tilesetImgW); // Compute vertical frame
-							if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
+							if ((x * sprSize)+camera.x-((10*sprSize))>=-sprSize || (x * sprSize)+camera.x-((10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-((8*sprSize))>=-sprSize || (y * sprSize)+camera.y-((8*sprSize))<=sprSize*11) {
 								if (tile==48 || tile==54 || tile==51 || tile==57) {
 									switch(tileAnim.frame) {
 										case 1:
@@ -872,8 +892,8 @@ function drawScene(){
 									imgY * basesprSize,
 									basesprSize,
 									basesprSize,
-									(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
-									(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
+									(x * sprSize)+camera.x-(80*8),
+									(y * sprSize)+camera.y-(64*8), 
 									sprSize, sprSize);
 							}
 							/* if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
@@ -881,20 +901,29 @@ function drawScene(){
 								ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
 								ctx.globalAlpha = 1;
 							} */
-						} else {
-							break;
-						}
+						//} else {
+							//break;
+						//}
 					}
 				}
-				if (!devMode.on || devMode.on && !devMode.hideObj) {
-					for (let x = 0; x < mapObjList[y].length; x++) {
-						if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<768 || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<896) {
-							let tile = mapObjList[y][x];
+			//}
+		}
+		for (let y=0; y<8*3; y++) {
+			if(y+(cameraOffY*8)<0 || y+(cameraOffY*8)>mapObjList.length) {
+				continue;
+			}
+			if (!devMode.on || devMode.on && !devMode.hideObj) {
+					for (let x = 0; x < 10*3; x++) {
+						//if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<768 || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<896) {
+							if(x+(cameraOffX*10)<0 || x+(cameraOffX*10)>mapObjList[y].length) {
+								continue;
+							}
+							let tile = mapObjList[y+(cameraOffY*8)][x+(cameraOffX*10)];
 							tilesetImgW = (tileset["overworld_obj"].naturalWidth/16);
 							tilesetImgH = (tileset["overworld_obj"].naturalHeight/16);
 							imgX = tile % 16; // Compute horizontal frame
 							imgY = Math.floor(tile / 16); // Compute vertical frame
-							if ((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))>=-sprSize || (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))>=-sprSize || (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<=sprSize*11) {
+							if ((x * sprSize)+camera.x-((10*sprSize))>=-sprSize || (x * sprSize)+camera.x-((10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-((8*sprSize))>=-sprSize || (y * sprSize)+camera.y-((8*sprSize))<=sprSize*11) {
 								/* if (tile!=256) {
 									if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<playerProp.sclyP+playerProp.y+(playerProp.scly/2)) {
 										drawPlayer();
@@ -908,27 +937,26 @@ function drawScene(){
 									imgY * basesprSize,
 									basesprSize,
 									basesprSize,
-									(x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),
-									(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), 
+									(x * sprSize)+camera.x-((10*8)*8),
+									(y * sprSize)+camera.y-((8*8)*8), 
 									sprSize, sprSize);
 								//}
 							}
-							if (devMode.on && devMode.linkColl) {
-								if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)), sprSize, (y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize)) {
+							if (devMode.on && devMode.showlinkColl) {
+								if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x, sprSize, (y * sprSize)+camera.y, sprSize)) {
 									ctx.globalAlpha = 0.5;
-									ctx.fillRect((x * sprSize)+camera.x-(camera.offsetX*(10*sprSize)),(y * sprSize)+camera.y-(camera.offsetY*(8*sprSize)), sprSize, sprSize);
+									ctx.fillRect((x * sprSize)+camera.x,(y * sprSize)+camera.y, sprSize, sprSize);
 									ctx.globalAlpha = 1;
 								}
 							}
-						} else {
-							break;
-						}
+						//} else {
+							//break;
+						//}
 					}
 				}
 				if (playerDraw==false) {
 					drawPlayer();
 				}
-			//}
 		}
     }
 }
