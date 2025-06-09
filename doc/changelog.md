@@ -123,3 +123,10 @@ And the coding starts...
 NOW!:
 - Started to do TFPG
 - Implemented TFPG (alpha), it only spawns the 0 tile from each biome instead of creating a lookable terrain
+  
+# 06/08/2025
+
+- Optomized the World drawing (now It only draws 9 chunks instead of the entire map)
+- Optomized the collision (it was always checking the entire map, now It only checks 9 chunks)
+
+Now in a comparation, the old code runs 16 chunks lagging, now the new code runs 256 chunks at sonics speed
