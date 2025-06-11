@@ -8,8 +8,8 @@ ctx.imageSmoothingEnabled = false;
 const projectProp = {
     verMajor : 0,
     verMinor : 1,
-    verPatch : 0,
-    verDescrp : "Infinite Infinity"
+    verPatch : 5,
+    verDescrp : "Endless Programming Aethos!"
 }
 
 document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMinor}.${projectProp.verPatch}`
@@ -323,6 +323,28 @@ function generateWorldObj() {
 										//break;
 									}
 								}
+							} else if (perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]==4) {
+								if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
+									if (mapObjList[y][x]!=22 || mapObjList[y][x]!=23) {
+										if (mapObjList[y][x]==7 || mapObjList[y][x]==7) {
+											mapObjList[y][x]=22;
+										} else if (mapObjList[y][x]==6 || mapObjList[y][x]==6) {
+											mapObjList[y][x]=7;
+										} else {
+											mapObjList[y][x]=23;
+										}
+										if (mapObjList[y][x-1]==7) {
+											mapObjList[y][x-1]=7;
+										} else if (mapObjList[y][x-1]==6) {
+											mapObjList[y][x-1]=23;
+										} else {
+											mapObjList[y][x-1]=22;
+										}
+										mapObjList[y-1][x]=7;
+										mapObjList[y-1][x-1]=6;
+										//break;
+									}
+								}
 							} else {
 								if (mapObjList[y][x]==256 && mapObjList[y][x-1]==256) {
 									if (mapObjList[y][x]!=20 || mapObjList[y][x]!=21) {
@@ -569,49 +591,115 @@ const plyspeed = (sprSize/basesprSize);
 let playerInListXPos = 0;
 let playerInListYPos = 0;
 
-function exportObjMap() {
-	// Convert mapList array into a string
-	let mapData = mapObjList.map(row => row.join(",")).join("\n");
-	  
-	// Create a Blob object
-	let blob = new Blob([mapData], { type: "text/plain" });
-	  
-	// Create a URL for the Blob
-	let url = URL.createObjectURL(blob);
-	  
-	// Create a link element
-	let a = document.createElement("a");
-	a.href = url;
-	a.download = "worldObjData.dat";
-	  
-	a.click();
-	  
-	URL.revokeObjectURL(url);
-	  
-	mapData = mapGroundList.map(row => row.join(",")).join("\n");
-	  
-	// Create a Blob object
-	blob = new Blob([mapData], { type: "text/plain" });
-	  
-	// Create a URL for the Blob
-	url = URL.createObjectURL(blob);
-	  
-	// Create a link element
-	a = document.createElement("a");
-	a.href = url;
-	a.download = "worldGrdData.dat";
-	  
-	// Programmatically click the link to trigger the download
-	a.click();
-	  
-	// Clean up the URL object
-	URL.revokeObjectURL(url);
+function exportMap() {
+    const mapGroundData = mapGroundList.map((row, y) =>
+        row.map((value, x) => `${x},${y}=${value}`).join("\n")
+    ).join("\n");
+
+    const mapObjData = mapObjList.map((row, y) =>
+        row.map((value, x) => `${x},${y}=${value}`).join("\n")
+    ).join("\n");
+	
+	const chunksData = perChunkWorld.map((row, y) => 
+		row.map((value, x) => `${x},${y}=${value}`).join("\n")
+	).join("\n");
+
+    const mapList = `Map Ground:\n${mapGroundData}\n\nMap Objects:\n${mapObjData}\n\nChunk Data:\n${chunksData}`;
+
+    const blob = new Blob([mapList], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+	
+	const fileName = prompt("Insert your world name: ");
+
+    a.href = url;
+    a.download = `${fileName}.txt`;
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
+
+
+function importMapList(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const text = e.target.result;
+        const lines = text.split("\n");
+
+        // Find section indexes properly
+        const mapGroundStart = lines.indexOf("Map Ground:") + 1;
+        const mapObjectsStart = lines.indexOf("Map Objects:") + 1;
+        const chunkDataStart = lines.indexOf("Chunk Data:") + 1;
+
+        const mapObjectsEnd = chunkDataStart - 2; // Stop parsing objects before Chunk Data
+        const mapGroundEnd = mapObjectsStart - 2; // Stop parsing ground before Map Objects
+
+        // Initialize empty 2D arrays
+        mapGroundList = [];
+        mapObjList = [];
+        perChunkWorld = [];
+
+        // Parse Map Ground section correctly
+        lines.slice(mapGroundStart, mapGroundEnd).forEach(line => {
+            if (!line.includes("=")) return;
+            const [position, value] = line.split("=");
+            const [x, y] = position.split(",").map(Number);
+            if (!mapGroundList[y]) mapGroundList[y] = [];
+            mapGroundList[y][x] = Number(value);
+        });
+
+        // Parse Map Objects section correctly
+        lines.slice(mapObjectsStart, mapObjectsEnd).forEach(line => {
+            if (!line.includes("=")) return;
+            const [position, value] = line.split("=");
+            const [x, y] = position.split(",").map(Number);
+            if (!mapObjList[y]) mapObjList[y] = [];
+            mapObjList[y][x] = Number(value);
+        });
+
+        // Parse Chunk Data section correctly
+        lines.slice(chunkDataStart).forEach(line => {
+            if (!line.includes("=")) return;
+            const [position, value] = line.split("=");
+            const [x, y] = position.split(",").map(Number);
+            if (!perChunkWorld[y]) perChunkWorld[y] = [];
+            perChunkWorld[y][x] = Number(value);
+        });
+		
+		playerProp.x = 0;
+		playerProp.y = 0;
+		camera.offsetX = 0;
+		camera.offsetY = 0;
+		camera.x = 0;
+		camera.y = 0;
+
+        console.log("Imported Map Ground List:", mapGroundList);
+        console.log("Imported Map Object List:", mapObjList);
+        console.log("Imported Chunk Map:", perChunkWorld);
+    };
+
+    reader.readAsText(file);
+}
+
+
+
+
 const exportButton = document.createElement("button");
-exportButton.textContent = "Export Objects Map List";
-exportButton.onclick = exportObjMap;
+exportButton.textContent = "Export Map";
+exportButton.onclick = exportMap;
 document.body.appendChild(exportButton);
+
+const uploadInput = document.createElement("input");
+uploadInput.type = "file";
+uploadInput.accept = ".txt"; // Restrict to .txt files
+uploadInput.onchange = importMapList;
+document.body.appendChild(uploadInput);
 
 function _update(deltaTime) {
 	let deltaX = 0;
@@ -659,17 +747,22 @@ function _update(deltaTime) {
 		}
 		
 		playerProp.x+=deltaX;
-		if (devMode.on && devMode.linkColl || devMode.on==false) {
-			if (checkCollisionWithObj(playerProp)) {
-				playerProp.x -= deltaX;
-			}
+		if (checkCollisionWithObj(playerProp)) {
+			playerProp.x -= deltaX;
+		} else if (camera.offsetX==worldSize.width-1 && (playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>640) {
+			playerProp.x -= deltaX;
+		} else if (camera.offsetX==0 && playerProp.x+((sprSize/basesprSize)*4)<0) {
+			playerProp.x -= deltaX;
 		}
+		
 		playerProp.y+=deltaY;
-		if (devMode.on && devMode.linkColl || devMode.on==false) {
-			if (checkCollisionWithObj(playerProp)) {
-				playerProp.y-=deltaY;
-			}
-		}		
+		if (checkCollisionWithObj(playerProp)) {
+			playerProp.y-=deltaY;
+		} else if (camera.offsetY==worldSize.height-1 && playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>512) {
+			playerProp.y -= deltaY;
+		} else if (camera.offsetY==0 && playerProp.y+((sprSize/basesprSize)*4)<0) {
+			playerProp.y -= deltaY;
+		}	
 		
 		//animation code is here
 		if (moveX!==0 || moveY!==0) {
@@ -747,17 +840,16 @@ function _update(deltaTime) {
 			transSide.up = true;
 		}
 	}if ((playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>640 && transiting==false && camera.offsetX<perChunkWorld[0].length-1) {
-		if (((camera.offsetX)*8)*2<=mapGroundList[0].length) {
-			transiting = true;
-			transSide.right = true;
-		}
+		//if (((camera.offsetX)*8)*2<=mapGroundList[0].length) {
+		transiting = true;
+		transSide.right = true;
+		//}
 	}if (playerProp.x+((sprSize/basesprSize)*4)<0 && transiting==false) {
 		if (camera.offsetX>0) {
 			transiting = true;
 			transSide.left = true;
 		}
 	}
-	
 	//tile animation guys
 	if (tileAnim.fTimer >= tileAnim.fDelay) {
 		tileAnim.frame = (tileAnim.frame + 1) % tileAnim.totalF;
