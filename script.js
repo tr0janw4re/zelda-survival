@@ -58,8 +58,8 @@ let dungeonType = 0; //this definies what type of wall the dungeon needs to have
 let tileset2use = "overworld";
 
 let worldSize = {
-	width : 256,
-	height : 256,
+	width : 16,
+	height : 16,
 }
 let chunk = 8; //dont change it
 
@@ -490,6 +490,9 @@ document.addEventListener("keydown", function(event) {
 
 document.addEventListener("keyup", function(event) {
 	keys[event.key]=false;
+	if (event.key == "p") {
+		generateMapImage();
+	}
 });
 
 document.addEventListener("mousemove", function(event) {
@@ -687,9 +690,6 @@ function importMapList(event) {
     reader.readAsText(file);
 }
 
-
-
-
 const exportButton = document.createElement("button");
 exportButton.textContent = "Export Map";
 exportButton.onclick = exportMap;
@@ -700,6 +700,44 @@ uploadInput.type = "file";
 uploadInput.accept = ".txt"; // Restrict to .txt files
 uploadInput.onchange = importMapList;
 document.body.appendChild(uploadInput);
+
+function generateMapImage() {
+	
+	if (!tileset["overworld"].complete) {
+		alert("Tileset wasn't loaded yet");
+		return;
+	}
+	
+	const totalTilesX = mapGroundList[0].length;
+	const totalTilesY = mapGroundList.length;
+	
+	const imageCanvas = document.createElement("canvas");
+	const imageCtx = imageCanvas.getContext("2d");
+	
+	imageCanvas.width = totalTilesX * basesprSize;
+	imageCanvas.height = totalTilesY * basesprSize;
+	
+	for (let y=0; y<totalTilesY; y++) {
+		for (let x=0; x<totalTilesX; x++) {
+			const tile = mapGroundList[y][x];
+			if (tile==256) continue;
+			
+			const imgX = tile % tilesetImgW;
+			const imgY = Math.floor(tile/tilesetImgW);
+			
+			imageCtx.drawImage(tileset["overworld"], imgX*basesprSize, imgY*basesprSize, basesprSize, basesprSize, x*basesprSize, y*basesprSize, basesprSize, basesprSize);
+		}
+	}
+	
+	const imgData = imageCanvas.toDataURL("image/png");
+	
+	const mapName = prompt("Insert screenshot name:");
+	
+	const a = document.createElement("a");
+	a.href = imgData;
+	a.download = `${mapName}.png`;
+	a.click();
+}
 
 function _update(deltaTime) {
 	let deltaX = 0;
