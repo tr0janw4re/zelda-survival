@@ -729,6 +729,18 @@ function generateMapImage() {
 		}
 	}
 	
+	for (let y=0; y<totalTilesY; y++) {
+		for (let x=0; x<totalTilesX; x++) {
+			const tile = mapObjList[y][x];
+			if (tile==256) continue;
+			
+			const imgX = tile % tilesetImgW;
+			const imgY = Math.floor(tile/tilesetImgW);
+			
+			imageCtx.drawImage(tileset["overworld_obj"], imgX*basesprSize, imgY*basesprSize, basesprSize, basesprSize, x*basesprSize, y*basesprSize, basesprSize, basesprSize);
+		}
+	}
+	
 	const imgData = imageCanvas.toDataURL("image/png");
 	
 	const mapName = prompt("Insert screenshot name:");
