@@ -3,15 +3,17 @@ canvas.width = 640;
 canvas.height = 576;
 const ctx = canvas.getContext("2d");
 
-ctx.imageSmoothingEnabled = false;
+ctx.imageSmoothingEnabled = false; //I WANT NICE SPRITES :))))))
 
+//the project version
 const projectProp = {
     verMajor : 0,
     verMinor : 1,
-    verPatch : 5,
-    verDescrp : "Endless Programming Aethos!"
+    verPatch : 85,
+    verDescrp : "Infinite Coding Irida!"
 }
 
+//the webpage title
 document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMinor}.${projectProp.verPatch}`
 
 //TODO: Add a Gameboy color on background behind the screen
@@ -20,50 +22,71 @@ document.title = `Zelda Survival - ${projectProp.verMajor}.${projectProp.verMino
 //TODO: Make layers for the tiles:
 /*
     Layer render for them {
-        1-Ground tiles
-        2-Walls - Objects
+        1-Ground tiles (made!)
+        2-Walls - Objects (made!)
         2-Ground Items - Also in the Layer 2
     }
     4-Dropped Items
-    5-Entities (Enemies, Player, etc..)
+    5-Entities (Enemies, Player, etc..) (made!)
 */
 
-let selectedBlock = 38;
+//types of tileset
+let tileset = {
+    dungeons : new Image(), //I think that I should make one imagefile for all the tilesets
+	overworld : new Image(),
+	overworld_obj : new Image()
+};
 
+let linkSpr = new Image();
+let hudImg = new Image();
+let itemSpr = new Image();
+
+tileset["dungeons"].src = "assets/tileset/dungeons/dungeons_t.png";
+tileset["overworld"].src = "assets/tileset/overworld/overworld_t_g.png";
+tileset["overworld_obj"].src = "assets/tileset/overworld/overworld_t_obj.png";
+
+linkSpr.src = "assets/linksprtest.png"; //loads links sprites
+hudImg.src = "assets/hud/weaponHud.png"; //loads the hud sprites
+itemSpr.src = "assets/itemSprites.png"; //loads the item being used by links sprites
+
+let selectedBlock = 38; //the block that Link's is using, but now it is useless I think
+
+//print the game name on the console guys!
 console.log("Zelda Survival (change name later)");
 console.log("Version "+projectProp.verMajor+"."+projectProp.verMinor+"."+projectProp.verPatch+" - "+projectProp.verDescrp);
 
+//I need to make new soundtracks
 let musicList = {};
 musicList["titleScreen"] = new Audio('assets/songs/ballad_of_a_new_start.mp3');
 
 //Ballad of a new Start i think that I will use in the credits screen
 //ALERT! The Ballad of a new Start isn't ready yet
 
-let biomeTiles = [
-	[0, 1, 2, 16, 17, 18, 32, 33, 34],
-	[3, 4, 5, 19, 20, 21, 35, 36, 37],
-	[6, 7, 8, 22, 23, 24, 38, 39, 40],
-	[9, 10, 11, 25, 26, 27, 41, 42, 43],
-	[12]
+//super alert, maybe the zelda songs will be scrapped
+
+let biomeTiles = [ //specific tiles for each biome
+	[0, 1, 2, 16, 17, 18, 32, 33, 34], //grass fields
+	[3, 4, 5, 19, 20, 21, 35, 36, 37], //sepian mounts
+	[6, 7, 8, 22, 23, 24, 38, 39, 40], //dark forest
+	[9, 10, 11, 25, 26, 27, 41, 42, 43], //mytical forest
+	[12] //desert of wastes
 ];
 
-let specialTiles = [
+let specialTiles = [ //special tiles that have different interactions with link
 	[38, 39, 256] //this tiles the player won't collide
 ]
 
-
-let basesprSize = 16;
-let sprSize = 64;
+let basesprSize = 16; //the base sprite size that the sprites use in the image
+let sprSize = 64; //the size that the sprites are rescaloned to be good on the big screen
 let dungeonType = 0; //this definies what type of wall the dungeon needs to have
-let tileset2use = "overworld";
+let tileset2use = "overworld"; //what tileset is being used to draw things on the screen
 
-let worldSize = {
+let worldSize = { //the size that the world is generated
 	width : 16,
 	height : 16,
 }
-let chunk = 8; //dont change it
 
-let biomeTypes = [
+let biomeTypes = [ //the types of biomes
 	"Grass Field",
 	"Sepian Mounts",
 	"Dark Forest",
@@ -71,14 +94,14 @@ let biomeTypes = [
 	"Desert of Wastes"
 ]
 
-let rupees = 123;
+let rupees = 415; //rupees 4 me!
 
-let linkLife = {
+let linkLife = { //its links life, what do you think that it is?
 	life : 3.5,
 	maxLife : 4
 }
 
-let controls = {
+let controls = { //the controls to control link, bruh
 	left:false,
 	down:false,
 	up:false,
@@ -90,27 +113,27 @@ let controls = {
 }
 
 //Some things for object world generation:
-let objTax = {
+let objTax = { //the var to create the objects in the world
 	tree : 20,
 	bush : 20,
 	rock : 20
 }
 
-let transiting = false;
-let transSide = {
+let transiting = false; //it is used when you gonna transit between on screen and another
+let transSide = { //in which side you r transiting
 	right : false,
 	left : false,
 	up : false,
 	down : false
 }
 
-let mouse = {
+let mouse = { //mouse position
 	x:0,
 	y:0,
 	down:false
 }
 
-let devMode = {
+let devMode = { //some dev tools
 	on : true,
 	debugTxt : true,
 	showlinkColl : false,
@@ -121,50 +144,166 @@ let devMode = {
 	hideEntities : false
 }
 
+let tilesetImgW = (tileset[tileset2use].naturalWidth/16); //it is used for world drawing
+
+let playerProp = { //player properties
+	x : 0, //player X
+	y : 0, //player Y
+	sprX: 0, //sprite X offset pos
+	sprY: 0, //sprite Y offset pos
+	sclx : sprSize-((sprSize/basesprSize)*8),
+	scly : sprSize-((sprSize/basesprSize)*8)+16,
+	direction: 0, //player direction
+	frame: 0, //player animation actual frame
+	fTimer: 0, //player frame timer
+	fDelay: 8, //time during a frame and another
+	totalF: 2, //max frames for animation
+	fState: 0, //kind of animation
+	useItem: 0 //the item that is currently being used
+}
+
+let tileAnim = { //used for make the flowers on the ground animated
+	fTimer : 0, //tile frame timer
+	frame : 0, //tile animation actual frame
+	fDelay : 16, //time during a frame and another
+	totalF : 4, //max frames for animation
+}
+
+let playerSprites = [ //a map of which animation to use, x offset, y offset, and a lot of another things
+//so now u can add and modify animations easily and fast
+	[ //direction - down
+		//animation
+		[[0, 0, 8], [0, 1, 8]], //frame -walking normal
+		[[0, 2, 8], [0, 3, 8]], //walking with shield
+		[[4, 0, 3, 0, 0], [4, 1, 3, 0, 0], [4, 1, 8, 0, 3]], //using item/sword
+		[[4, 2, 8], [4, 3, 8]] //swimming 
+	],
+	[ //direction - right
+		//animation
+		[[1, 0, 8], [1, 1, 8]], //frame - walking normal
+		[[1, 2, 8], [1, 3, 8]], //walking with shield
+		[[5, 0, 3, 0, 0], [5, 1, 3, 0, 0], [5, 1, 8, 3, 0]], //using item/sword
+		[[5, 2, 8], [5, 3, 8]] //swimming 
+	],
+	[ //direction - up
+		//animation
+		[[2, 0, 8], [2, 1, 8]], //frame - walking normal
+		[[2, 2, 8], [2, 3, 8]], //walking with shield
+		[[6, 0, 3], [6, 1, 3], [6, 1, 8, 0, -3]], //using item/sword
+		[[6, 2, 8], [6, 3, 8]] //swimming 
+	],
+	[ //direction - left
+		//animation
+		[[3, 0, 8], [3, 1, 8]], //frame - walking normal
+		[[3, 2, 8], [3, 3, 8]], //walking with shield
+		[[7, 0, 3], [7, 1, 3], [7, 1, 8, -3, 0]], //using item/sword
+		[[7, 2, 8], [7, 3, 8]] //swimming
+	]
+]
+
+let itemsSprProp = [ //a similar thing for the links animation, but it supports mirroring the sprites
+	//item - sword
+	[
+		[ //direction - down
+			[-16, 8, 0, 0, false, false],
+			[-13, 13, 1, 0, false, false],
+			[0, 16, 2, 0, false, false],
+		],
+		[ //right
+			[0, -16, 2, 0, false, true],
+			[13, -13, 1, 0, true, true],
+			[16, 9, 0, 0, true, false]
+		],
+		[ //up 
+			[16, 1, 0, 0, true, false],
+			[13, -13, 1, 0, true, true],
+			[-8, -16, 2, 0, false, true]
+		],
+		[ //left
+			[-8, -16, 2, 0, false, true],
+			[-13, -13, 1,0, false, true],
+			[-16, -1, 0, 0, false, true]
+		]
+		//x offset, y offset, x sprite pos, y sprite pos, invert horizontal, invert vertical
+	],
+]
+
+playerProp.sclxP = ((sprSize/basesprSize)*4); //player scale X
+playerProp.sclyP = ((sprSize/basesprSize)*4); //player scale Y
+
+let camera = { //camera properties
+	x : 0, //its used for camera transition
+	y : 0, //its also used for camera transition
+	offsetX : 0, //what focus the camera in a frame
+	offsetY : 0 //ditto
+}
+
+let moveX = 0; //what allows the player to move in X
+let moveY = 0; //what allows the player to move in Y
+
+let selItem = [0, 8]; //the item that is the main hand
+
+const keys={}; //the keys that exist
+const keyPr={}; //the key is pressed?
+
 //10 tiles of left to right
 //8 tiles of up to down (not 9, the last is used for hud, which for some reason is also part of the map)
 
+let perChunkWorld = []; //your world per chunk
+let mapGroundList = []; //the ground of your world
+let mapObjList = []; //the most inneficient way to add objects to your world
+
 //here is where the world is generated
-let perChunkWorld = [];
 
-//first it generates the world per chunks
-for (let y=0; y<worldSize.height; y++) {
-	perChunkWorld[y] = [];
-	for (let x=0; x<worldSize.height; x++) {
-		perChunkWorld[y][x] = Math.round(Math.random()*(biomeTypes.length-1));
-		//perChunkWorld[y][x] = 0;
+function generateWorld() {
+	
+	//verifies if u aren't idiot and is erasing a entire world
+	if (perChunkWorld.length!==0 && mapGroundList.length!==0 && mapObjList.length!==0) {
+		let eraseWorld = confirm("Your world will be lost if you create a new! you really want to proceed?");
+		if (!eraseWorld) {
+			return 0;
+		}
 	}
-}
-
-let mapGroundList = [];
-
-//after, it turns each chunk into a full map
-for (let y=0; y<worldSize.height; y++) {
-	for (let i=0; i<8; i++){
-		mapGroundList[(y*8)+i] = [];
-		//it starts creating 8 spaces in Y part 
+	
+	//erase your world
+	perChunkWorld = [];
+	mapGroundList = [];
+	mapObjList = [];
+	
+	//Generate World 8x10 Chunks
+	for (let y=0; y<worldSize.height; y++) {
+		perChunkWorld[y] = [];
+		for (let x=0; x<worldSize.height; x++) {
+			perChunkWorld[y][x] = Math.round(Math.random()*(biomeTypes.length-1));
+			//perChunkWorld[y][x] = 0;
+		}
 	}
-	//first, it creates the y part
-	for (let x=0; x<worldSize.width; x++) {
-		for (let i=0; i<8; i++) {
-			for (let j=0; j<10; j++) {
-				mapGroundList[(y*8)+i][(x*10)+j] = biomeTiles[perChunkWorld[y][x]][0];
-				//it will create 10 X spaces in each 8 Y spaces
+	
+	//Turn the chunks in a real world
+	for (let y=0; y<worldSize.height; y++) {
+		//first, it creates the y part
+		for (let i=0; i<8; i++){
+			mapGroundList[(y*8)+i] = [];
+			//it starts creating 8 spaces in Y part 
+		}
+		for (let x=0; x<worldSize.width; x++) {
+			for (let i=0; i<8; i++) {
+				for (let j=0; j<10; j++) {
+					mapGroundList[(y*8)+i][(x*10)+j] = biomeTiles[perChunkWorld[y][x]][0];
+					//and after it will create 10 X spaces in each 8 Y spaces
+				}
 			}
 		}
 	}
-}
-
-//make the world better
-
-function checkGroundAppear() {
+	
+	//Checks the world tile to make them look normal
 	for (let y=0; y<mapGroundList.length; y++) {
 		for (let x=0; x<mapGroundList[0].length; x++) {
 			let currTile = mapGroundList[y][x];
 			if (perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]==4) {
 				continue;
 			}
-			if (1==1) {
+			if (1==1) { //ignore that check
 				let validTiles = new Set(biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]]);
 				let tileright, tiledown, tileup, tileleft = "no";
 				
@@ -185,7 +324,6 @@ function checkGroundAppear() {
 					if (validTiles.has(tileleft)) {
 						if (validTiles.has(tileup)) {
 							if (validTiles.has(tiledown)) {
-								//mapGroundList[y][x]==biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][4];
 								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][4];
 							} else {
 								mapGroundList[y][x] = biomeTiles[perChunkWorld[Math.floor(y/8)][Math.floor(x/10)]][7];
@@ -222,66 +360,31 @@ function checkGroundAppear() {
 			}
 		}
 	}
-}
-
-checkGroundAppear();
-
-/* mapGroundList = [
-    [0 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 ,6 , 7, 7, 7, 7, 7, 7, 7, 7, 8],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
-    [16, 17, 17, 17, 17, 17, 17, 17, 17, 18,22,23,23,23,23,23,23,23,23,24],
-    [32, 33, 33, 33, 33, 33, 33, 33, 33, 34,38,39,39,39,39,39,39,39,39,40],
-	[3 , 4 , 4 , 4 , 4 , 4 , 4 , 4 , 4 , 5 , 9,10,10,10,10,10,10,10,10,11],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
-    [19, 20, 20, 20, 20, 20, 20, 20, 20, 21,25,26,26,26,26,26,26,26,26,27],
-    [35, 36, 36, 36, 36, 36, 36, 36, 36, 37,41,42,42,42,42,42,42,42,42,43]
-]; //a pretty basic map to test tiles position */
-
-//creates flowers in the ground
-for (let y=0; y<mapGroundList.length; y++) { //the world is better now
-	for (let x=0; x<mapGroundList[0].length; x++) {
-		let detailsOnGround = Math.round(Math.random()*4);
-		if (detailsOnGround==0) {
-			switch(mapGroundList[y][x]) {
-				case 17:
-					mapGroundList[y][x]=48;
-					break;
-				case 23:
-					mapGroundList[y][x]=54;
-					break;
-				case 20:
-					mapGroundList[y][x]=51;
-					break;
-				case 26:
-					mapGroundList[y][x]=57;
-					break;
+	
+	//adds flowers into the ground
+	for (let y=0; y<mapGroundList.length; y++) { //the world is better and beautifull now
+		for (let x=0; x<mapGroundList[0].length; x++) {
+			let detailsOnGround = Math.round(Math.random()*4);
+			if (detailsOnGround==0) { //improve that sh*t
+				switch(mapGroundList[y][x]) {
+					case 17:
+						mapGroundList[y][x]=48;
+						break;
+					case 23:
+						mapGroundList[y][x]=54;
+						break;
+					case 20:
+						mapGroundList[y][x]=51;
+						break;
+					case 26:
+						mapGroundList[y][x]=57;
+						break;
+				}
 			}
 		}
 	}
-}
-
-console.log(`Map Y List ${mapGroundList.length} per block: 8`);
-console.log(`Map X List ${mapGroundList[0].length} per block: 10`)
-console.log(`${worldSize.width} Vertical Chunks and ${worldSize.height} Horizontal Chunks`)
-
-let mapObjList = []; //the most inneficient way to add objects to your world
-
-let tileset = {
-    dungeons : new Image(),
-	overworld : new Image(),
-	overworld_obj : new Image()
-};
-
-function generateWorldObj() {
-	mapObjList = [];
+	
+	//generates the objects on the world (just like trees, rocks, bushes, etc...)
 	
 	for (let y=0; y<mapGroundList.length; y++) { //creating space on the object list
 		mapObjList[y] = [];
@@ -415,78 +518,24 @@ function generateWorldObj() {
 		}
 		//break;
 	}
+	
+	//prints some useless stuff
+	console.log(`Map Y List ${mapGroundList.length} per block: 8`);
+	console.log(`Map X List ${mapGroundList[0].length} per block: 10`);
+	console.log(`${worldSize.width} Vertical Chunks and ${worldSize.height} Horizontal Chunks`);
 }
 
-generateWorldObj();
-
-//type of tileset
-tileset["dungeons"].src = "assets/tileset/dungeons/dungeons_t.png";
-tileset["overworld"].src = "assets/tileset/overworld/overworld_t_g.png";
-tileset["overworld_obj"].src = "assets/tileset/overworld/overworld_t_obj.png";
-let linkSpr = new Image();
-linkSpr.src = "assets/linksprtest.png";
-
-let hudImg = new Image();
-hudImg.src = "assets/hud/weaponHud.png";
+//yeah, it needs to call this function
+generateWorld();
 
 tileset[tileset2use].onload = () => {
     gameLoop(); //only starts the game when the image load
 };
 
-let tilesetImgW = (tileset[tileset2use].naturalWidth/16);
-let tilesetImgH = (tileset[tileset2use].naturalHeight/16); //for future calculations
-
-let playerProp = {
-    x : 0, //player X
-    y : 0, //player Y
-	sclx : sprSize-((sprSize/basesprSize)*8),
-	scly : sprSize-((sprSize/basesprSize)*8)+16,
-    direction: 0, //player direction
-    frame: 0, //player animation actual frame
-    fTimer: 0, //player frame timer
-    fDelay: 8, //time during a frame and another
-	totalF: 2 //frames for animation
-}
-
-let tileAnim = {
-	fTimer : 0,
-	frame : 0,
-	fDelay : 16,
-	totalF : 4,
-}
-
-playerProp.sclxP = ((sprSize/basesprSize)*4);
-playerProp.sclyP = ((sprSize/basesprSize)*4);
-
-let camera = {
-	x : 0,
-	y : 0,
-	offsetX : 0,
-	offsetY : 0
-}
-
-let moveX = 0;
-let moveY = 0;
-
-const keys={};
-const keyPr={};
-
-let selItem = {
-	A : 0,
-	B : 8
-}
-
-let frame = 0;
-
 document.addEventListener("keydown", function(event) {
 	keys[event.key]=true;
 	keyPr[event.key]=true;
 });
-
-/* document.addEventListener("click", function(event) {
-	musicList["titleScreen"].volume = 0.8;
-	musicList["titleScreen"].play();
-}, {once : true}); */
 
 document.addEventListener("keyup", function(event) {
 	keys[event.key]=false;
@@ -526,16 +575,16 @@ let lastTime = performance.now();
 let fps = 0;
 
 function gameLoop() {
-  const currentTime = performance.now();
-  let deltaTime = currentTime - lastTime;
-  lastTime = currentTime;
+	const currentTime = performance.now();
+	let deltaTime = currentTime - lastTime;
+	lastTime = currentTime;
 
-  fps = Math.round(1000 / deltaTime);
+	fps = Math.round(1000 / deltaTime);
 
-  _update(deltaTime); //what constantly calls the loop
-  _draw();
-
-  requestAnimationFrame(gameLoop);
+	_update(deltaTime); //what constantly calls the loop
+	_draw();
+	
+	requestAnimationFrame(gameLoop);
 }
 
 let lazy = (sprSize/basesprSize)*4;
@@ -595,33 +644,33 @@ let playerInListXPos = 0;
 let playerInListYPos = 0;
 
 function exportMap() {
-    const mapGroundData = mapGroundList.map((row, y) =>
-        row.map((value, x) => `${x},${y}=${value}`).join("\n")
-    ).join("\n");
+	const mapGroundData = mapGroundList.map((row, y) =>
+		row.map((value, x) => `${x},${y}=${value}`).join("\n")
+	).join("\n");
 
-    const mapObjData = mapObjList.map((row, y) =>
-        row.map((value, x) => `${x},${y}=${value}`).join("\n")
-    ).join("\n");
+	const mapObjData = mapObjList.map((row, y) =>
+		row.map((value, x) => `${x},${y}=${value}`).join("\n")
+	).join("\n");
 	
 	const chunksData = perChunkWorld.map((row, y) => 
 		row.map((value, x) => `${x},${y}=${value}`).join("\n")
 	).join("\n");
 
-    const mapList = `Map Ground:\n${mapGroundData}\n\nMap Objects:\n${mapObjData}\n\nChunk Data:\n${chunksData}`;
+	const mapList = `Map Ground:\n${mapGroundData}\n\nMap Objects:\n${mapObjData}\n\nChunk Data:\n${chunksData}`;
 
-    const blob = new Blob([mapList], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+	const blob = new Blob([mapList], { type: "text/plain" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
 	
 	const fileName = prompt("Insert your world name: ");
 
-    a.href = url;
-    a.download = `${fileName}.txt`;
-    document.body.appendChild(a);
-    a.click();
+	a.href = url;
+	a.download = `${fileName}.txt`;
+	document.body.appendChild(a);
+	a.click();
 
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+	document.body.removeChild(a);
+	URL.revokeObjectURL(url);
 }
 
 
@@ -714,6 +763,8 @@ function generateMapImage() {
 	const imageCanvas = document.createElement("canvas");
 	const imageCtx = imageCanvas.getContext("2d");
 	
+	imageCtx.imageSmoothingEnabled = false;
+	
 	imageCanvas.width = totalTilesX * basesprSize;
 	imageCanvas.height = totalTilesY * basesprSize;
 	
@@ -740,7 +791,7 @@ function generateMapImage() {
 			imageCtx.drawImage(tileset["overworld_obj"], imgX*basesprSize, imgY*basesprSize, basesprSize, basesprSize, x*basesprSize, y*basesprSize, basesprSize, basesprSize);
 		}
 	}
-	
+		
 	const imgData = imageCanvas.toDataURL("image/png");
 	
 	const mapName = prompt("Insert screenshot name:");
@@ -763,40 +814,63 @@ function _update(deltaTime) {
 	if(keys["s"]) {controls.down=true} else {controls.down=false};
 	if(keys["w"]) {controls.up=true} else {controls.up=false};
 	if(keys["a"]) {controls.left=true} else {controls.left=false};
-	
-	
+	if(keys["b"]) {controls.b=true} else {controls.b=false};
+	if(keys["n"]) {controls.a=true} else {controls.a=false};
+		
 	if (!transiting) {
-		if(controls.right ) {moveX=-1} else if (controls.left ) {moveX=1} else {moveX=0};
-		if(controls.up ) {moveY=-1} else if (controls.down ) {moveY=1} else {moveY=0};
-		if(controls.right ) {
-			deltaX+=plyspeed;
-			if (controls.down !=true && controls.up !=true && controls.left !=true) {
-				playerProp.direction = 1;
+		if (playerProp.fState!=2) {
+			if(controls.right ) {moveX=-1} else if (controls.left ) {moveX=1} else {moveX=0};
+			if(controls.up ) {moveY=-1} else if (controls.down ) {moveY=1} else {moveY=0};
+			if(controls.right ) {
+				deltaX+=plyspeed;
+				if (controls.down !=true && controls.up !=true && controls.left !=true) {
+					playerProp.direction = 1;
+				}
 			}
-		}
-		if(controls.left ) {
-			deltaX-=plyspeed;
-			if (controls.down !=true && controls.up !=true && controls.right !=true) {
-				playerProp.direction = 3;
+			if(controls.left ) {
+				deltaX-=plyspeed;
+				if (controls.down !=true && controls.up !=true && controls.right !=true) {
+					playerProp.direction = 3;
+				}
 			}
-		}
-		if(controls.up ) {
-			deltaY-=plyspeed;
-			if (controls.down !=true && controls.left !=true && controls.right !=true) {
-				playerProp.direction = 2;
+			if(controls.up ) {
+				deltaY-=plyspeed;
+				if (controls.down !=true && controls.left !=true && controls.right !=true) {
+					playerProp.direction = 2;
+				}
 			}
-		}
-		if(controls.down ) {
-			deltaY+=plyspeed;
-			if (controls.up !=true && controls.left !=true && controls.right !=true) {
-				playerProp.direction = 0;
+			if(controls.down ) {
+				deltaY+=plyspeed;
+				if (controls.up !=true && controls.left !=true && controls.right !=true) {
+					playerProp.direction = 0;
+				}
 			}
-		}
-		if(keys["j"]) {
-			mapObjList[playerInListYPos][playerInListXPos] = selectedBlock;
+			if(keys["j"]) {
+				mapObjList[playerInListYPos][playerInListXPos] = selectedBlock;
+			}
+			
+			if(controls.b) {
+				if (playerProp.fState!=2) {
+					playerProp.useItem=0;
+					playerProp.fState=2;
+					playerProp.frame=0;
+					playerProp.fTimer=0;
+				}
+			}
+			if(controls.a) {
+				if (playerProp.fState!=2) {
+					playerProp.useItem=1;
+					playerProp.fState=2;
+					playerProp.frame=0;
+					playerProp.fTimer=0;
+				}
+			}
 		}
 		
-		playerProp.x+=deltaX;
+		if (playerProp.fState!==2) {
+			playerProp.x+=deltaX;
+		}
+		
 		if (checkCollisionWithObj(playerProp)) {
 			playerProp.x -= deltaX;
 		} else if (camera.offsetX==worldSize.width-1 && (playerProp.x+((sprSize/basesprSize)*4))+playerProp.sclx>640) {
@@ -805,25 +879,57 @@ function _update(deltaTime) {
 			playerProp.x -= deltaX;
 		}
 		
-		playerProp.y+=deltaY;
+		if (playerProp.fState!==2) {
+			playerProp.y+=deltaY;
+		}
+		
 		if (checkCollisionWithObj(playerProp)) {
 			playerProp.y-=deltaY;
 		} else if (camera.offsetY==worldSize.height-1 && playerProp.y+playerProp.scly+((sprSize/basesprSize)*4)>512) {
 			playerProp.y -= deltaY;
 		} else if (camera.offsetY==0 && playerProp.y+((sprSize/basesprSize)*4)<0) {
 			playerProp.y -= deltaY;
-		}	
+		}
+		
+		//checks for sprite animation
+		if (selItem[1]==1 || selItem[0]==1) {
+			if (playerProp.fState==0) {
+				playerProp.fState=1;
+			}
+		} else {
+			if (playerProp.fState==1) {
+				playerProp.fState=0;
+			}
+		}
+		
+		playerProp.fDelay = playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][2];
+		//playerProp.totalF = playerSprites[playerProp.direction][playerProp.fState].length;
 		
 		//animation code is here
-		if (moveX!==0 || moveY!==0) {
+		if (playerProp.fState!==2) {
+			if (moveX!==0 || moveY!==0) {
+				playerProp.fTimer++;
+				if (playerProp.fTimer >= playerProp.fDelay) {
+					playerProp.frame = (playerProp.frame + 1) % playerProp.totalF;
+					playerProp.fTimer = 0;
+					playerProp.fDelay = playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][2];
+					playerProp.totalF = playerSprites[playerProp.direction][playerProp.fState].length;
+				}
+			} else {
+				playerProp.frame=0;
+				playerProp.fTimer=0;
+			}	
+		} else {
 			playerProp.fTimer++;
 			if (playerProp.fTimer >= playerProp.fDelay) {
 				playerProp.frame = (playerProp.frame + 1) % playerProp.totalF;
 				playerProp.fTimer = 0;
+				if (playerProp.fState==2 && playerProp.frame+1<playerProp.totalF) {
+					playerProp.fState=0;
+				}
+				playerProp.fDelay = playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][2];
+				playerProp.totalF = playerSprites[playerProp.direction][playerProp.fState].length;
 			}
-		} else {
-			playerProp.frame=0;
-			playerProp.fTimer=0;
 		}
 		//use something like this on the tile animation
 		
@@ -917,10 +1023,53 @@ function _update(deltaTime) {
 }
 
 function drawPlayer() {
+	let plyoffsetX = 0;
+	let plyoffsetY = 0;
+	if (playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][3]!==undefined) {
+		plyoffsetX = playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][3];
+	}
+	if (playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][4]!==undefined) {
+		plyoffsetY = playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][4];
+	}
 	if (linkSpr.complete) {
-		ctx.drawImage(linkSpr, playerProp.direction*basesprSize, playerProp.frame*basesprSize, basesprSize, basesprSize, playerProp.x, playerProp.y, sprSize, sprSize);
+		ctx.drawImage(linkSpr, playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][0]*basesprSize, playerSprites[playerProp.direction][playerProp.fState][playerProp.frame][1]*basesprSize, basesprSize, basesprSize, playerProp.x+(plyoffsetX*(sprSize/basesprSize)), playerProp.y+(plyoffsetY*(sprSize/basesprSize)), sprSize, sprSize);
 		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly); //this is for link's collision your dumbass
-		//ctx.fillRect(playerProp.sclxP+playerProp.x, playerProp.sclyP+playerProp.y, playerProp.sclx, playerProp.scly/2); //this is for visible drawing your dumbass
+	}
+	
+	if (playerProp.fState===2){
+		ctx.save();
+		
+		if (itemsSprProp[selItem[playerProp.useItem]]!==undefined) {
+			let offsetX = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][0]*(sprSize/basesprSize);
+			let offsetY = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][1]*(sprSize/basesprSize);
+			let spriteX = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][2];
+			let spriteY = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][3];
+			
+			let drawX = (playerProp.x+(plyoffsetX*(sprSize/basesprSize)))+ offsetX;
+			let drawY = (playerProp.y+(plyoffsetY*(sprSize/basesprSize)))+ offsetY;
+			
+			let mirrorX = 0;
+			let mirrorY = 0;
+			
+			if (itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][4]) {
+				mirrorX = -1;
+			} else {
+				mirrorX = 1;
+			}
+			if (itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][5]) {
+				mirrorY = -1;	
+			} else {
+				mirrorY = 1;
+			}
+			
+			ctx.translate(drawX+sprSize/2,drawY+sprSize/2);
+			ctx.scale(mirrorX, mirrorY);
+			
+			//if (playerProp.useItem==0)
+			ctx.drawImage(itemSpr, spriteX*basesprSize, spriteY*basesprSize, basesprSize, basesprSize, -sprSize/2, -sprSize/2, sprSize, sprSize);
+
+		}
+		ctx.restore();
 	}
 }
 
@@ -928,9 +1077,9 @@ function drawHud() {
 	if (hudImg.complete) {
 		//main A and B buttons
 		ctx.drawImage(hudImg, 0, 0, basesprSize*2+1, basesprSize, sprSize/basesprSize, 512, sprSize*2, sprSize);
-		ctx.drawImage(hudImg, selItem.A*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, ((sprSize/basesprSize)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
+		ctx.drawImage(hudImg, selItem[0]*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, ((sprSize/basesprSize)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
 		ctx.drawImage(hudImg, (basesprSize*2)+1, 0, basesprSize*2+1, basesprSize, (sprSize/basesprSize+sprSize*2)+7*4, 512, sprSize*2, sprSize);
-		ctx.drawImage(hudImg, selItem.B*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, (((sprSize/basesprSize+sprSize*2)+7*4)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
+		ctx.drawImage(hudImg, selItem[1]*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, (((sprSize/basesprSize+sprSize*2)+7*4)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
 		//rupees counter (I need to use Rupees for something)
 		ctx.drawImage(hudImg, (basesprSize/2)*9, 0, basesprSize/2, basesprSize/2, 81*(sprSize/basesprSize), 512, sprSize/2, sprSize/2);
 		//the numbers guys
@@ -985,7 +1134,6 @@ function drawHud() {
 				}
 			}
 		}
-		
 	}
 }
 
@@ -1130,5 +1278,6 @@ function _draw() {
 		ctx.fillText(`Current Tile Animation Frame: ${tileAnim.frame}`, 0, 570);
 		ctx.fillText(`Mouse X: ${mouse.x} Y: ${mouse.y} down: ${mouse.down}`, 0, 20);
 		ctx.fillText(`Current Biome: ${biomeTypes[perChunkWorld[camera.offsetY][camera.offsetX]]}`,0,30);
+		ctx.fillText(`Camera Offset X: ${camera.offsetX} Y: ${camera.offsetY}`,0 , 40);
 	}
 }
