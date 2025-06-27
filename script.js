@@ -9,8 +9,8 @@ ctx.imageSmoothingEnabled = false; //I WANT NICE SPRITES :))))))
 const projectProp = {
     verMajor : 0,
     verMinor : 1,
-    verPatch : 85,
-    verDescrp : "Infinite Coding Irida!"
+    verPatch : 9,
+    verDescrp : "I will buy a Switch with the money!"
 }
 
 //the webpage title
@@ -73,7 +73,8 @@ let biomeTiles = [ //specific tiles for each biome
 ];
 
 let specialTiles = [ //special tiles that have different interactions with link
-	[38, 39, 256] //this tiles the player won't collide
+	[38, 39, 256], //this tiles the player won't collide
+	[16, 17, 18, 19],
 ]
 
 let basesprSize = 16; //the base sprite size that the sprites use in the image
@@ -138,6 +139,7 @@ let devMode = { //some dev tools
 	debugTxt : true,
 	showlinkColl : false,
 	linkColl : true,
+	showItemColl : false,
 	hideObj : false,
 	hideGrnd : false,
 	hideHud : false,
@@ -151,8 +153,10 @@ let playerProp = { //player properties
 	y : 0, //player Y
 	sprX: 0, //sprite X offset pos
 	sprY: 0, //sprite Y offset pos
-	sclx : sprSize-((sprSize/basesprSize)*8),
-	scly : sprSize-((sprSize/basesprSize)*8)+16,
+	sclx : sprSize/2,
+	scly : (sprSize/2)+16,
+	sclxP : basesprSize,
+	sclyP : basesprSize,
 	direction: 0, //player direction
 	frame: 0, //player animation actual frame
 	fTimer: 0, //player frame timer
@@ -176,28 +180,32 @@ let playerSprites = [ //a map of which animation to use, x offset, y offset, and
 		[[0, 0, 8], [0, 1, 8]], //frame -walking normal
 		[[0, 2, 8], [0, 3, 8]], //walking with shield
 		[[4, 0, 3, 0, 0], [4, 1, 3, 0, 0], [4, 1, 8, 0, 3]], //using item/sword
-		[[4, 2, 8], [4, 3, 8]] //swimming 
+		[[4, 2, 8], [4, 3, 8]], //swimming
+		[[8, 0, 8], [8, 1, 8]]
 	],
 	[ //direction - right
 		//animation
 		[[1, 0, 8], [1, 1, 8]], //frame - walking normal
 		[[1, 2, 8], [1, 3, 8]], //walking with shield
 		[[5, 0, 3, 0, 0], [5, 1, 3, 0, 0], [5, 1, 8, 3, 0]], //using item/sword
-		[[5, 2, 8], [5, 3, 8]] //swimming 
+		[[5, 2, 8], [5, 3, 8]], //swimming
+		[[9, 0, 8], [9, 1, 8]]
 	],
 	[ //direction - up
 		//animation
 		[[2, 0, 8], [2, 1, 8]], //frame - walking normal
 		[[2, 2, 8], [2, 3, 8]], //walking with shield
 		[[6, 0, 3], [6, 1, 3], [6, 1, 8, 0, -3]], //using item/sword
-		[[6, 2, 8], [6, 3, 8]] //swimming 
+		[[6, 2, 8], [6, 3, 8]], //swimming
+		[[10, 0, 8], [10, 1, 8]]
 	],
 	[ //direction - left
 		//animation
 		[[3, 0, 8], [3, 1, 8]], //frame - walking normal
 		[[3, 2, 8], [3, 3, 8]], //walking with shield
 		[[7, 0, 3], [7, 1, 3], [7, 1, 8, -3, 0]], //using item/sword
-		[[7, 2, 8], [7, 3, 8]] //swimming
+		[[7, 2, 8], [7, 3, 8]], //swimming
+		[[11, 0, 8], [11, 1, 8]]
 	]
 ]
 
@@ -208,28 +216,121 @@ let itemsSprProp = [ //a similar thing for the links animation, but it supports 
 			[-16, 8, 0, 0, false, false],
 			[-13, 13, 1, 0, false, false],
 			[0, 16, 2, 0, false, false],
+			{
+				offX : 2,
+				offY : 12,
+				sclx: 4,
+				scly: 12,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
 		],
 		[ //right
 			[0, -16, 2, 0, false, true],
 			[13, -13, 1, 0, true, true],
-			[16, 9, 0, 0, true, false]
+			[16, 9, 0, 0, true, false],
+			{
+				offX: 12,
+				offY: 4,
+				sclx: 12,
+				scly: 4,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
 		],
 		[ //up 
 			[16, 1, 0, 0, true, false],
 			[13, -13, 1, 0, true, true],
-			[-8, -16, 2, 0, false, true]
+			[-8, -16, 2, 0, false, true],
+			{
+				offX : 2,
+				offY : -12,
+				sclx : 4,
+				scly : 12,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
 		],
 		[ //left
 			[-8, -16, 2, 0, false, true],
 			[-13, -13, 1,0, false, true],
-			[-16, -1, 0, 0, false, true]
+			[-16, -1, 0, 0, false, true],
+			{
+				offX: -12,
+				offY: 4,
+				sclx: 12,
+				scly: 4,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
+		],
+	],
+		[],
+		[],
+		[],
+		[],
+		[],
+		[],
+		[],
+		[],
+		[],
+		[],
+		[
+		[ //direction - down
+			[-16, 8, 3, 0, false, false],
+			[-13, 13, 4, 0, false, false],
+			[0, 16, 5, 0, false, false],
+			{
+				offX : 2,
+				offY : 12,
+				sclx: 4,
+				scly: 12,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
+		],
+		[ //right
+			[0, -16, 5, 0, false, true],
+			[13, -13, 4, 0, true, true],
+			[16, 9, 3, 0, true, false],
+			{
+				offX: 12,
+				offY: 4,
+				sclx: 12,
+				scly: 4,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
+		],
+		[ //up 
+			[16, 1, 3, 0, true, false],
+			[13, -13, 4, 0, true, true],
+			[-8, -16, 5, 0, false, true],
+			{
+				offX : 2,
+				offY : -12,
+				sclx : 4,
+				scly : 12,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
+		],
+		[ //left
+			[-8, -16, 5, 0, false, true],
+			[-13, -13, 4,0, false, true],
+			[-16, -1, 3, 0, false, true],
+			{
+				offX: -12,
+				offY: 4,
+				sclx: 12,
+				scly: 4,
+				sclxP: basesprSize,
+				sclyP: basesprSize
+			}
 		]
 		//x offset, y offset, x sprite pos, y sprite pos, invert horizontal, invert vertical
-	],
+	]
 ]
-
-playerProp.sclxP = ((sprSize/basesprSize)*4); //player scale X
-playerProp.sclyP = ((sprSize/basesprSize)*4); //player scale Y
 
 let camera = { //camera properties
 	x : 0, //its used for camera transition
@@ -241,7 +342,7 @@ let camera = { //camera properties
 let moveX = 0; //what allows the player to move in X
 let moveY = 0; //what allows the player to move in Y
 
-let selItem = [0, 8]; //the item that is the main hand
+let handItem = [0, 1]; //the item that is the main hand
 
 const keys={}; //the keys that exist
 const keyPr={}; //the key is pressed?
@@ -589,6 +690,7 @@ function gameLoop() {
 
 let lazy = (sprSize/basesprSize)*4;
 
+
 function checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY) {
 	let obj1prop = {
 		left : obj1.x+obj1.sclxP,
@@ -605,7 +707,7 @@ function checkCollisionInTiles(obj1, tX, tsclX, tY, tsclY) {
 	return(obj1prop.right>obj2prop.left && obj1prop.left<obj2prop.right && obj1prop.down>obj2prop.up && obj1prop.up<obj2prop.down);
 }
 
-function checkCollisionWithObj(obj) {
+function checkCollisionWithObj(obj, mapPoint, xory) {
 	let dontcol = false;
 	let cameraOffY = camera.offsetY - 1;
 	let cameraOffX = camera.offsetX - 1;
@@ -631,7 +733,15 @@ function checkCollisionWithObj(obj) {
 				const tileY = (y*sprSize) + camera.y-(64*8);
 			
 				if (checkCollisionInTiles(obj, tileX, sprSize, tileY, sprSize)) {
-					return true;
+					if (mapPoint) {
+						if (xory==0) {
+							return x-10;
+						} else if (xory==1) {
+							return y-8;
+						}
+					} else {
+						return true;
+					}
 				}
 			}
 		}
@@ -656,7 +766,7 @@ function exportMap() {
 		row.map((value, x) => `${x},${y}=${value}`).join("\n")
 	).join("\n");
 
-	const mapList = `Map Ground:\n${mapGroundData}\n\nMap Objects:\n${mapObjData}\n\nChunk Data:\n${chunksData}`;
+	const mapList = `Map Ground:\n${mapGroundData}\n\nMap Objects:\n${mapObjData}\n\nChunk Data:\n${chunksData}\nGAMEVERSION: \n${projectProp.verMajor}.${projectProp.verMinor}.${projectProp.verPatch} - ${projectProp.verDescrp}`;
 
 	const blob = new Blob([mapList], { type: "text/plain" });
 	const url = URL.createObjectURL(blob);
@@ -673,7 +783,21 @@ function exportMap() {
 	URL.revokeObjectURL(url);
 }
 
-
+function destroyTile(tileY, tileX, mapPart, item, currItem) {
+	if (item) {
+		if (currItem==0) {
+			
+			let desTiles = new Set(specialTiles[1]);
+			
+			if (desTiles.has(mapPart[tileY][tileX])) {
+				mapPart[tileY][tileX] = 256;
+			}
+			
+		}
+	} else {
+		mapPart[tileY][tileX] = 256;
+	}
+}
 
 function importMapList(event) {
     const file = event.target.files[0];
@@ -688,7 +812,7 @@ function importMapList(event) {
         const mapGroundStart = lines.indexOf("Map Ground:") + 1;
         const mapObjectsStart = lines.indexOf("Map Objects:") + 1;
         const chunkDataStart = lines.indexOf("Chunk Data:") + 1;
-
+		
         const mapObjectsEnd = chunkDataStart - 2; // Stop parsing objects before Chunk Data
         const mapGroundEnd = mapObjectsStart - 2; // Stop parsing ground before Map Objects
 
@@ -852,17 +976,45 @@ function _update(deltaTime) {
 			if(controls.b) {
 				if (playerProp.fState!=2) {
 					playerProp.useItem=0;
-					playerProp.fState=2;
-					playerProp.frame=0;
-					playerProp.fTimer=0;
+					if (handItem[0]==1) {
+						playerProp.fState=4;
+					} else {
+						playerProp.fState=2
+					}
+					if (playerProp.fState!==4) {
+						playerProp.frame=0;
+						playerProp.fTimer=0;
+					}
+				}
+			} else {
+				if (playerProp.fState==4 && !controls.a) {
+					if (handItem[0]==1) {
+						playerProp.fState=1;
+					} else {
+						playerProp.fState=0;
+					}
 				}
 			}
 			if(controls.a) {
 				if (playerProp.fState!=2) {
 					playerProp.useItem=1;
-					playerProp.fState=2;
-					playerProp.frame=0;
-					playerProp.fTimer=0;
+					if (handItem[1]==1) {
+						playerProp.fState=4;
+					} else {
+						playerProp.fState=2
+					}
+					if (playerProp.fState!==4) {
+						playerProp.frame=0;
+						playerProp.fTimer=0;
+					}
+				}
+			} else {
+				if (playerProp.fState==4 && !controls.b) {
+					if (handItem[1]==1) {
+						playerProp.fState=1;
+					} else {
+						playerProp.fState = 0;
+					}
 				}
 			}
 		}
@@ -891,8 +1043,37 @@ function _update(deltaTime) {
 			playerProp.y -= deltaY;
 		}
 		
+		if (playerProp.fState==2 && itemsSprProp[handItem[playerProp.useItem]] && itemsSprProp[handItem[playerProp.useItem]].length!==0) {
+			let hitboxX = playerProp.x+itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].offX*(sprSize/basesprSize);
+			let hitboxY = playerProp.y+itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].offY*(sprSize/basesprSize);
+			let hitboxSclx = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].sclx*(sprSize/basesprSize);
+			let hitboxScly = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].scly*(sprSize/basesprSize);
+			let hitboxSclxP = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].sclxP;
+			let hitboxSclyP = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].sclyP;
+			
+			let itemObj = {
+				x : hitboxX,
+				y : hitboxY,
+				sclx: hitboxSclx,
+				scly: hitboxScly,
+				sclxP: hitboxSclxP,
+				sclyP: hitboxSclyP,
+			}
+			
+			if (checkCollisionWithObj(itemObj)) {
+				let tileX = checkCollisionWithObj(itemObj, true, 0);
+				let tileY = checkCollisionWithObj(itemObj, true, 1);
+				/* console.log("Colliding")
+				console.log(`X: ${tileX} Y: ${tileY} PLX: ${playerProp.x} PLY: ${playerProp.y}`)
+				console.log(`ITEMX: ${hitboxX} ITEMY: ${hitboxY} ITEMSCLX: ${hitboxX+hitboxSclx} ITEMSCLY: ${hitboxY+hitboxScly}`)
+				console.log(`OBJX: ${tileX*basesprSize*(sprSize/basesprSize)} OBJY: ${tileY*basesprSize*(sprSize/basesprSize)}`) */
+				//mapObjList[tileY+(camera.offsetY*8)][tileX+(camera.offsetX*10)] = 256;
+				destroyTile(tileY+(camera.offsetY*8), tileX+(camera.offsetX*10), mapObjList, true, playerProp.useItem)
+			}
+		}
+		
 		//checks for sprite animation
-		if (selItem[1]==1 || selItem[0]==1) {
+		if (handItem[1]==1 || handItem[0]==1) {
 			if (playerProp.fState==0) {
 				playerProp.fState=1;
 			}
@@ -1039,11 +1220,11 @@ function drawPlayer() {
 	if (playerProp.fState===2){
 		ctx.save();
 		
-		if (itemsSprProp[selItem[playerProp.useItem]]!==undefined) {
-			let offsetX = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][0]*(sprSize/basesprSize);
-			let offsetY = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][1]*(sprSize/basesprSize);
-			let spriteX = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][2];
-			let spriteY = itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][3];
+		if (itemsSprProp[handItem[playerProp.useItem]]!==undefined && itemsSprProp[handItem[playerProp.useItem]].length!==0) {
+			let offsetX = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][playerProp.frame][0]*(sprSize/basesprSize);
+			let offsetY = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][playerProp.frame][1]*(sprSize/basesprSize);
+			let spriteX = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][playerProp.frame][2];
+			let spriteY = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][playerProp.frame][3];
 			
 			let drawX = (playerProp.x+(plyoffsetX*(sprSize/basesprSize)))+ offsetX;
 			let drawY = (playerProp.y+(plyoffsetY*(sprSize/basesprSize)))+ offsetY;
@@ -1051,21 +1232,45 @@ function drawPlayer() {
 			let mirrorX = 0;
 			let mirrorY = 0;
 			
-			if (itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][4]) {
+			if (itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][playerProp.frame][4]) {
 				mirrorX = -1;
 			} else {
 				mirrorX = 1;
 			}
-			if (itemsSprProp[selItem[playerProp.useItem]][playerProp.direction][playerProp.frame][5]) {
+			if (itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][playerProp.frame][5]) {
 				mirrorY = -1;	
 			} else {
 				mirrorY = 1;
 			}
 			
-			ctx.translate(drawX+sprSize/2,drawY+sprSize/2);
-			ctx.scale(mirrorX, mirrorY);
+			if (devMode.showItemColl && devMode.on) {
+				let hitboxX = playerProp.x+itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].offX*(sprSize/basesprSize);
+				let hitboxY = playerProp.y+itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].offY*(sprSize/basesprSize);
+				let hitboxSclx = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].sclx*(sprSize/basesprSize);
+				let hitboxScly = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].scly*(sprSize/basesprSize);
+				let hitboxSclxP = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].sclxP;
+				let hitboxSclyP = itemsSprProp[handItem[playerProp.useItem]][playerProp.direction][itemsSprProp[handItem[playerProp.useItem]][playerProp.direction].length-1].sclyP;
+				
+				let itemObj = {
+					x : hitboxX,
+					y : hitboxY,
+					sclx: hitboxSclx,
+					scly: hitboxScly,
+					sclxP: hitboxSclxP,
+					sclyP: hitboxSclyP
+				}
+				
+				if (devMode.showItemColl) {
+					ctx.fillStyle="#ff0000"
+					ctx.fillRect(itemObj.x, itemObj.y, itemObj.sclx, itemObj.scly)
+					ctx.fillStyle="#00ff00"
+					ctx.fillRect(itemObj.x+itemObj.sclxP, itemObj.y+itemObj.sclyP, itemObj.sclx, itemObj.scly)
+				}
+			}
 			
 			//if (playerProp.useItem==0)
+			ctx.translate(drawX+sprSize/2,drawY+sprSize/2);
+			ctx.scale(mirrorX, mirrorY);
 			ctx.drawImage(itemSpr, spriteX*basesprSize, spriteY*basesprSize, basesprSize, basesprSize, -sprSize/2, -sprSize/2, sprSize, sprSize);
 
 		}
@@ -1077,9 +1282,9 @@ function drawHud() {
 	if (hudImg.complete) {
 		//main A and B buttons
 		ctx.drawImage(hudImg, 0, 0, basesprSize*2+1, basesprSize, sprSize/basesprSize, 512, sprSize*2, sprSize);
-		ctx.drawImage(hudImg, selItem[0]*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, ((sprSize/basesprSize)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
+		ctx.drawImage(hudImg, handItem[0]*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, ((sprSize/basesprSize)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
 		ctx.drawImage(hudImg, (basesprSize*2)+1, 0, basesprSize*2+1, basesprSize, (sprSize/basesprSize+sprSize*2)+7*4, 512, sprSize*2, sprSize);
-		ctx.drawImage(hudImg, selItem[1]*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, (((sprSize/basesprSize+sprSize*2)+7*4)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
+		ctx.drawImage(hudImg, handItem[1]*(basesprSize/2), basesprSize, basesprSize/2, basesprSize, (((sprSize/basesprSize+sprSize*2)+7*4)+basesprSize*2)-(sprSize/basesprSize), 512, sprSize/2, sprSize)
 		//rupees counter (I need to use Rupees for something)
 		ctx.drawImage(hudImg, (basesprSize/2)*9, 0, basesprSize/2, basesprSize/2, 81*(sprSize/basesprSize), 512, sprSize/2, sprSize/2);
 		//the numbers guys
@@ -1142,10 +1347,9 @@ function drawScene(){
 		//BUG FIX GUYS!!1!
 		let imgX = 0;
 		let imgY = 0;
-		let playerDraw = false;
 		let cameraOffY = camera.offsetY - 1;
 		let cameraOffX = camera.offsetX - 1;
-        for (let y = 0; y < 8*3; y++) { //optomize the map draw, his length is too big to be drawed entirelly (okay, lets do it)
+        for (let y = 0; y < 8*3; y++) {
 			//if((camera.offsetY*8)*2<=mapGroundList.length) {
 				if(y+(cameraOffY*8)<0 || y+(cameraOffY*8)>mapGroundList.length) {
 					continue;
@@ -1214,38 +1418,20 @@ function drawScene(){
 							imgX = tile % 16; // Compute horizontal frame
 							imgY = Math.floor(tile / 16); // Compute vertical frame
 							if ((x * sprSize)+camera.x-((10*sprSize))>=-sprSize || (x * sprSize)+camera.x-((10*sprSize))<=sprSize*11 || (y * sprSize)+camera.y-((8*sprSize))>=-sprSize || (y * sprSize)+camera.y-((8*sprSize))<=sprSize*11) {
-								/* if (tile!=256) {
-									if ((y * sprSize)+camera.y-(camera.offsetY*(8*sprSize))<playerProp.sclyP+playerProp.y+(playerProp.scly/2)) {
-										drawPlayer();
-										playerDraw=true;
-									}
-								} */
-								//if (tile!=256) {
-									ctx.drawImage(
-									tileset["overworld_obj"],
-									imgX * basesprSize,
-									imgY * basesprSize,
-									basesprSize,
-									basesprSize,
-									(x * sprSize)+camera.x-((10*8)*8),
-									(y * sprSize)+camera.y-((8*8)*8), 
-									sprSize, sprSize);
-								//}
-							}
-							if (devMode.on && devMode.showlinkColl) {
-								if (checkCollisionInTiles(playerProp, (x * sprSize)+camera.x, sprSize, (y * sprSize)+camera.y, sprSize)) {
-									ctx.globalAlpha = 0.5;
-									ctx.fillRect((x * sprSize)+camera.x,(y * sprSize)+camera.y, sprSize, sprSize);
-									ctx.globalAlpha = 1;
-								}
+								ctx.drawImage(
+								tileset["overworld_obj"],
+								imgX * basesprSize,
+								imgY * basesprSize,
+								basesprSize,
+								basesprSize,
+								(x * sprSize)+camera.x-((10*8)*8),
+								(y * sprSize)+camera.y-((8*8)*8), 
+								sprSize, sprSize);
 							}
 						//} else {
 							//break;
 						//}
 					}
-				}
-				if (playerDraw==false) {
-					drawPlayer();
 				}
 		}
     }
@@ -1255,6 +1441,7 @@ function _draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height); //it cleans the screen
 	ctx.fillStyle = "#ffffff";
 	drawScene();
+	drawPlayer();
 	ctx.fillStyle = "#ff0000";
 	ctx.globalAlpha=0.5;
 	//ctx.fillRect((playerInListXPos-(camera.offsetX*10))*sprSize, (playerInListYPos-(camera.offsetY*8))*sprSize, sprSize, sprSize);
