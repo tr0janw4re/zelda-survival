@@ -15,5 +15,5 @@ my idea is make this game have a LOT of alternative versions, being on my mind t
 
 - Web game version: this version
 - GBC version : I want A LOT to make a port to the Gameboy Color, because how u know, the original game was made on the original Gameboy (and after it get a remake to the Gameboy Color)
-- PC Executable Version (Love 2D): I hate web development, and I'm very limited on what I can do using HTML and Javascript only, so I decided 
+- PC Executable Version (Love 2D): I hate web development, and I'm very limited on what I can do using HTML and Javascript only, so I've decided to redo my entire game in love2d, which ended becaming the main version (which i wouldn't say that it wasn't in the plans cuz it was but would take more time to became it), but despite that, this version will became a entire new game with its own story, lore, characters and more.
 - DS version: yes
