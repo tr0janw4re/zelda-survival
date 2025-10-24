@@ -9,6 +9,8 @@ Zelda Survival is a survival game, using the The Legend of Zelda: Link's Awakeni
 **BIG CHANGE!:** This specific version (web version) became the *Legacy Edition*, cuz the main version became the love2d version
 but this version will continue to receive updates until it hits **1.0.0**, together with the main version, that will became a entire new game
 
+**ANOTHER UPDATE** this version was cancelled until next notice
+
 # VERSIONS:
 
 my idea is make this game have a LOT of alternative versions, being on my mind these versions:
